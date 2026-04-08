@@ -31,12 +31,15 @@ export async function requireAuth() {
 /**
  * Trigger Google OAuth sign-in via Supabase.
  */
-export async function signInWithGoogle() {
+export async function signInWithGoogle(requestOrigin?: string) {
   const supabase = await createClient();
+  // Prefer explicit APP_URL env var; fall back to the request's origin so the
+  // redirectTo is always an absolute URL (Supabase rejects relative URLs).
+  const baseUrl = APP_URL || requestOrigin || 'http://localhost:3000';
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${APP_URL}/auth/callback`,
+      redirectTo: `${baseUrl}/auth/callback`,
     },
   });
 

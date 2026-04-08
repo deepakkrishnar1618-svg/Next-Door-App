@@ -43,10 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const redirectToLogin = async () => {
+    // Use window.location.origin as fallback so redirectTo is always an absolute URL.
+    // Supabase OAuth will reject a relative URL and loop back to the home page.
+    const baseUrl = APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${APP_URL}/auth/callback`,
+        redirectTo: `${baseUrl}/auth/callback`,
       },
     });
   };
