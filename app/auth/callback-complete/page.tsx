@@ -13,9 +13,24 @@ export default function AuthCallbackPage() {
       try {
         await exchangeCodeForSessionToken();
 
-        // Wait for auth state to propagate
+        // Only proceed once the auth state has settled
         if (!isPending) {
+          if (!user) {
+            // Session cookie was not received — go back to login
+            router.push("/");
+            return;
+          }
+
           const profileResponse = await fetch("/api/profile", { credentials: 'include' });
+
+          // A non-OK response (e.g. 401) means the session isn't recognised yet.
+          // Avoid misreading an error JSON as "profile not completed" which would
+          // push to /profile/setup → no user → push back to / (infinite loop).
+          if (!profileResponse.ok) {
+            router.push("/");
+            return;
+          }
+
           const profileData = await profileResponse.json();
           if (profileData.profile_completed) router.push("/chat");
           else router.push("/profile/setup");
@@ -27,7 +42,7 @@ export default function AuthCallbackPage() {
     };
 
     handleCallback();
-  }, [isPending]);
+  }, [isPending, user]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 flex items-center justify-center">
