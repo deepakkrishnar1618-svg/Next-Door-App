@@ -28,6 +28,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   return json({ success: true });
 }
 
+// Frontend sends PUT for edits
+export const PUT = PATCH;
+
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);

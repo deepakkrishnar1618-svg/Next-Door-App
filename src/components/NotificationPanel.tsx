@@ -150,7 +150,8 @@ export default function NotificationPanel({
 
   const handleUnreadClick = () => {
     onUnreadClick();
-    onClose();
+    // Auto-dismiss after 2s so the scroll completes before panel closes
+    setTimeout(onClose, 2000);
   };
 
   const handleReminderView = (reminder: Reminder) => {

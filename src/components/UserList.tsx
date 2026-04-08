@@ -9,7 +9,7 @@ interface UserData {
   name: string | null;
   room_number: string | null;
   avatar_url: string | null;
-  is_admin: number;
+  is_admin: number | boolean;
   is_online: number;
   last_seen_at: string | null;
   profile_completed: number;
@@ -33,7 +33,7 @@ export default function UserList({ users, currentUserId, onClose }: UserListProp
       try {
         const response = await fetch("/api/profile", { credentials: 'include' });
         const data = await response.json();
-        setIsAdmin(data.is_admin === 1);
+        setIsAdmin(data.is_admin === 1 || data.is_admin === true);
       } catch (error) {
         console.error("Failed to check admin status:", error);
       }
@@ -180,7 +180,7 @@ export default function UserList({ users, currentUserId, onClose }: UserListProp
             }`}>
               {user.name || (user.email ? user.email : 'User')}
             </span>
-            {user.is_admin === 1 && (
+            {(user.is_admin === 1 || user.is_admin === true) && (
               <Crown className="w-4 h-4 text-warning flex-shrink-0" />
             )}
             {user.id === currentUserId && (

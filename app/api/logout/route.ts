@@ -8,7 +8,18 @@ export async function GET(request: NextRequest) {
 
   if (userId) {
     const db = getServiceClient();
-    await db.from('users').update({ is_online: false, last_seen_at: new Date().toISOString() }).eq('id', userId);
+    // Get the latest message ID to save as read position before logging out
+    const { data: latest } = await db.from('messages')
+      .select('id')
+      .or('group_id.eq.main,group_id.is.null')
+      .order('id', { ascending: false })
+      .limit(1)
+      .single();
+    await db.from('users').update({
+      is_online: false,
+      last_seen_at: new Date().toISOString(),
+      ...(latest ? { last_read_message_id: latest.id } : {}),
+    }).eq('id', userId);
   }
 
   // Sign out from Supabase

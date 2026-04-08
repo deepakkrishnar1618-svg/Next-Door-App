@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error, validateFileUpload } from '@/src/lib/api-helpers';
-import { createServiceClient } from '@/src/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   const userId = await authenticate();
@@ -27,7 +26,7 @@ export async function POST(request: NextRequest) {
   const bucket = type === 'profile' ? 'avatars' : 'attachments';
   const path = `${prefix}/${userId}/${timestamp}-${sanitizedFilename}`;
 
-  const supabase = await createServiceClient();
+  const supabase = getServiceClient();
   const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, {
     contentType: file.type,
     upsert: false,

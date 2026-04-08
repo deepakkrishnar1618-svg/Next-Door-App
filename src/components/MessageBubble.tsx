@@ -147,6 +147,8 @@ export default function MessageBubble({
   const [barFixedStyle, setBarFixedStyle] = useState<{ top?: number; bottom?: number; left?: number; right?: number }>({});
   const [reactionPopupEmoji, setReactionPopupEmoji] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [menuAbove, setMenuAbove] = useState(true);
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -390,6 +392,32 @@ export default function MessageBubble({
     }
   };
 
+  const handleAnnounce = async () => {
+    const hours = prompt('Create announcement — expires in how many hours? (default: 24)', '24');
+    if (hours === null) return; // user cancelled
+    const h = parseInt(hours || '24', 10);
+    if (isNaN(h) || h < 1) { alert('Invalid duration'); return; }
+    try {
+      const res = await fetch('/api/admin-reminders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ message_id: message.id, expires_hours: h }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || 'Failed to create announcement');
+        return;
+      }
+      setShowMenu(false);
+      onSetActive(false);
+      onMessageUpdated();
+    } catch (err) {
+      console.error('Failed to announce:', err);
+      alert('Failed to create announcement');
+    }
+  };
+
   const handleTogglePin = async () => {
     try {
       const method = message.is_pinned === 1 ? "DELETE" : "POST";
@@ -411,6 +439,15 @@ export default function MessageBubble({
       console.error("Failed to toggle pin:", error);
       alert("Failed to update pin status");
     }
+  };
+
+  const openMenu = (btnRef: React.RefObject<HTMLButtonElement | null>) => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      // If less than 200px above the button, open downward
+      setMenuAbove(rect.top > 200);
+    }
+    setShowMenu(v => !v);
   };
 
   const canEditOrDelete = () => {
@@ -725,7 +762,8 @@ export default function MessageBubble({
                   <div className="w-px h-6 bg-slate-300 dark:bg-slate-600"></div>
                   <div className="relative">
                     <button
-                      onClick={() => setShowMenu(!showMenu)}
+                      ref={menuBtnRef}
+                      onClick={() => openMenu(menuBtnRef)}
                       className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                       title="More options"
                     >
@@ -733,7 +771,7 @@ export default function MessageBubble({
                     </button>
 
                     {showMenu && (
-                      <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-dark-surface rounded-button-rect shadow-soft dark:shadow-soft-dark border border-slate-200 dark:border-slate-700 py-1 w-32 z-50">
+                      <div className={`absolute ${menuAbove ? 'bottom-full mb-2' : 'top-full mt-2'} right-0 bg-white dark:bg-dark-surface rounded-button-rect shadow-soft dark:shadow-soft-dark border border-slate-200 dark:border-slate-700 py-1 w-32 z-50`}>
                         <button
                           onClick={() => {
                             handleCopy();
@@ -785,13 +823,22 @@ export default function MessageBubble({
                           </button>
                         )}
                         {isAdmin && (
-                          <button
-                            onClick={handleTogglePin}
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-slate-800 dark:text-white font-outfit"
-                          >
-                            <Pin className="w-3 h-3" />
-                            {message.is_pinned === 1 ? 'Unpin' : 'Pin'}
-                          </button>
+                          <>
+                            <button
+                              onClick={handleTogglePin}
+                              className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-slate-800 dark:text-white font-outfit"
+                            >
+                              <Pin className="w-3 h-3" />
+                              {message.is_pinned ? 'Unpin' : 'Pin'}
+                            </button>
+                            <button
+                              onClick={handleAnnounce}
+                              className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-amber-600 dark:text-amber-400 font-outfit"
+                            >
+                              <Clock className="w-3 h-3" />
+                              Announce
+                            </button>
+                          </>
                         )}
                       </div>
                     )}
@@ -807,7 +854,9 @@ export default function MessageBubble({
             className={`rounded-bubble px-m py-3 cursor-pointer lg:cursor-auto transition-opacity ${
               isDeleting ? 'opacity-50' : 'opacity-100'
             } ${
-              isWinnerAnnouncement
+              isReminder
+                ? "bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/20 text-slate-800 dark:text-white border-2 border-amber-300 dark:border-amber-700 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
+                : isWinnerAnnouncement
                 ? "bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-900/40 dark:to-yellow-900/30 text-amber-900 dark:text-amber-100 border border-amber-200 dark:border-amber-700/50 shadow-[0_0_20px_rgba(251,191,36,0.3)] dark:shadow-[0_0_20px_rgba(251,191,36,0.2)]"
                 : isOwnMessage
                   ? "bg-primary-mint/10 dark:bg-primary-pine text-slate-800 dark:text-white shadow-sm dark:shadow-soft"
@@ -932,7 +981,8 @@ export default function MessageBubble({
               <div className="w-px h-5 bg-slate-200 dark:bg-slate-700"></div>
               <div className="relative">
                 <button
-                  onClick={() => setShowMenu(!showMenu)}
+                  ref={menuBtnRef}
+                  onClick={() => openMenu(menuBtnRef)}
                   className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-dark-elevated transition-colors"
                   title="More options"
                 >
@@ -940,7 +990,7 @@ export default function MessageBubble({
                 </button>
 
                 {showMenu && (
-                  <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-dark-surface rounded-button-rect shadow-soft dark:shadow-soft-dark border border-slate-200 dark:border-slate-700 py-1 w-32 z-50">
+                  <div className={`absolute ${menuAbove ? 'bottom-full mb-2' : 'top-full mt-2'} right-0 bg-white dark:bg-dark-surface rounded-button-rect shadow-soft dark:shadow-soft-dark border border-slate-200 dark:border-slate-700 py-1 w-32 z-50`}>
                     <button
                       onClick={() => {
                         handleCopy();
@@ -976,13 +1026,22 @@ export default function MessageBubble({
                       </>
                     )}
                     {isAdmin && (
-                      <button
-                        onClick={handleTogglePin}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-slate-800 dark:text-white font-outfit"
-                      >
-                        <Pin className="w-3 h-3" />
-                        {message.is_pinned === 1 ? 'Unpin' : 'Pin'}
-                      </button>
+                      <>
+                        <button
+                          onClick={handleTogglePin}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-slate-800 dark:text-white font-outfit"
+                        >
+                          <Pin className="w-3 h-3" />
+                          {message.is_pinned ? 'Unpin' : 'Pin'}
+                        </button>
+                        <button
+                          onClick={handleAnnounce}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-amber-600 dark:text-amber-400 font-outfit"
+                        >
+                          <Clock className="w-3 h-3" />
+                          Announce
+                        </button>
+                      </>
                     )}
                   </div>
                 )}
@@ -1060,15 +1119,15 @@ export default function MessageBubble({
             </>
           )}
           
-          {message.is_pinned === 1 && (
+          {!!message.is_pinned && (
             <>
               <Pin className="w-3 h-3 text-amber-500 dark:text-amber-400 fill-current" />
               <span className="text-amber-600 dark:text-amber-400 font-medium">Pinned</span>
               <span className="text-slate-300 dark:text-slate-600">•</span>
             </>
           )}
-          
-          {message.is_edited === 1 && (
+
+          {!!message.is_edited && (
             <>
               <span className="italic text-slate-400 dark:text-slate-500">(edited)</span>
               <span className="text-slate-300 dark:text-slate-600">•</span>

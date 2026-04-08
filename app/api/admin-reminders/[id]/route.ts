@@ -8,7 +8,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const db = getServiceClient();
 
   const { data: caller } = await db.from('users').select('is_admin').eq('id', userId).single();
-  if (!caller || caller.is_admin !== 1) return error('Only admins can delete reminders', 403);
+  if (!caller || !(caller.is_admin === 1 || caller.is_admin === true)) return error('Only admins can delete reminders', 403);
 
   await db.from('reminders').delete().eq('id', id);
   return json({ success: true });

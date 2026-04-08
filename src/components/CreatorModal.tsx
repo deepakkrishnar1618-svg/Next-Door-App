@@ -51,7 +51,7 @@ export default function CreatorModal({ onClose }: CreatorModalProps) {
 
   const fetchAdminProfile = async () => {
     try {
-      const response = await fetch("/api/admin/profile", {
+      const response = await fetch("/api/profile/admin", {
         credentials: 'include'
       });
       
@@ -79,7 +79,7 @@ export default function CreatorModal({ onClose }: CreatorModalProps) {
       
       if (response.ok) {
         const data = await response.json();
-        setCurrentUserIsAdmin(data.is_admin === 1);
+        setCurrentUserIsAdmin(data.is_admin === 1 || data.is_admin === true);
       }
     } catch (error) {
       console.error("Error checking admin status:", error);

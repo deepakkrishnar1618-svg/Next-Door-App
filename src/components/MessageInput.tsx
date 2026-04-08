@@ -290,7 +290,7 @@ export default function MessageInput({
           
           {mentionQuery !== null && (
             <MentionAutocomplete
-              users={users.filter(u => u.profile_completed === 1)}
+              users={users.filter(u => !!u.profile_completed)}
               searchQuery={mentionQuery}
               onSelect={handleMentionSelect}
             />

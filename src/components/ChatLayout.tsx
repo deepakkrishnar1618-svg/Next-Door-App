@@ -262,7 +262,6 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
   };
 
   const handleUnreadMessagesClick = () => {
-    setActivePanel(null);
     refetchUnreadCount();
     if (messages.length === 0) return;
 

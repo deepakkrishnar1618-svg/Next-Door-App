@@ -6,6 +6,21 @@ export async function GET() {
   const db = getServiceClient();
 
   const { data: user } = await db.from('users').select('last_read_message_id').eq('id', userId).single();
+
+  // First login: set baseline to current latest message, return 0 unread
+  if (user && (user.last_read_message_id === null || user.last_read_message_id === undefined)) {
+    const { data: latest } = await db.from('messages')
+      .select('id')
+      .or('group_id.eq.main,group_id.is.null')
+      .order('id', { ascending: false })
+      .limit(1)
+      .single();
+    if (latest) {
+      await db.from('users').update({ last_read_message_id: latest.id }).eq('id', userId);
+    }
+    return json({ count: 0 });
+  }
+
   const lastReadId = user?.last_read_message_id || 0;
 
   const { count } = await db.from('messages')
