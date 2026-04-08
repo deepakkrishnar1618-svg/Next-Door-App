@@ -14,15 +14,16 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    // Check localStorage first
+    // Guard: localStorage and window are not available during SSR
+    if (typeof window === 'undefined') return 'light';
+
     const saved = localStorage.getItem('theme') as Theme | null;
     if (saved) return saved;
-    
-    // Then check system preference
+
     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
     }
-    
+
     return 'light';
   });
 
