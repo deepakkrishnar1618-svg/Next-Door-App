@@ -16,7 +16,7 @@ export async function GET() {
 
   // Fetch messages and users manually (no FK constraints)
   const messageIds = rawReminders.map((r: Record<string, unknown>) => r.message_id as number).filter(Boolean);
-  const userIds = [...new Set(rawReminders.map((r: Record<string, unknown>) => r.created_by_user_id as string).filter(Boolean))];
+  const userIds = Array.from(new Set(rawReminders.map((r: Record<string, unknown>) => r.created_by_user_id as string).filter(Boolean)));
 
   const [{ data: messages }, { data: users }] = await Promise.all([
     messageIds.length > 0

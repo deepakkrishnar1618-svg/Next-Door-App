@@ -15,7 +15,7 @@ export async function GET() {
   if (!rawMessages?.length) return json([]);
 
   // Fetch user data manually (no FK constraint on messages table)
-  const userIds = [...new Set((rawMessages).map((m: Record<string, unknown>) => m.user_id as string))];
+  const userIds = Array.from(new Set(rawMessages.map((m: Record<string, unknown>) => m.user_id as string)));
   const { data: users } = await db.from('users')
     .select('id, name, avatar_url, room_number')
     .in('id', userIds);
