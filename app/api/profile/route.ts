@@ -18,6 +18,11 @@ export async function GET() {
   return json(dbUser);
 }
 
+// Accept both PUT and PATCH for profile updates
+export async function PATCH(request: NextRequest) {
+  return PUT(request);
+}
+
 export async function PUT(request: NextRequest) {
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);

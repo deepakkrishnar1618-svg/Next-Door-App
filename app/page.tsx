@@ -2,14 +2,24 @@
 
 import { useEffect } from "react";
 import { useAuth } from "@/src/lib/auth-hook";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTheme } from "@/src/context/ThemeContext";
 
 export default function HomePage() {
   const { user, isPending, redirectToLogin } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { theme } = useTheme();
+
+  // Supabase sometimes redirects to /?code=... instead of /auth/callback?code=...
+  // when the callback URL isn't in the Supabase allowlist. Forward it manually.
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      router.replace(`/auth/callback?code=${encodeURIComponent(code)}`);
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     const link = document.createElement('link');
