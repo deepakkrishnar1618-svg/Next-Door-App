@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
       ...m,
       id: m.id as number,
       user_id: m.user_id as string,
+      type: 'message',          // MessageList filters regularMessages by type === 'message'
       user_name: u?.name || null,
       user_avatar_url: u?.avatar_url || null,
       user_room_number: u?.room_number || null,
@@ -104,7 +105,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Fetch system messages and merge
+  // Fetch system messages (app-wide, no group filter) and merge
   const { data: systemMsgs } = await db.from('system_messages')
     .select('*').order('created_at', { ascending: true });
 
@@ -116,9 +117,13 @@ export async function GET(request: NextRequest) {
     new Date((b as Record<string, unknown>).created_at as string).getTime()
   );
 
+  // Fetch the current user's last_read_message_id so the client can compute unread position
+  const { data: userRow } = await db.from('users').select('last_read_message_id').eq('id', userId).single();
+
   console.log(`[GET /api/messages] returning ${combined.length} total items (${messages.length} messages + ${systemMsgs?.length ?? 0} system)`);
 
-  return json(combined);
+  // Return as object so useMessages can read last_read_message_id alongside the array
+  return json({ messages: combined, last_read_message_id: userRow?.last_read_message_id || null });
 }
 
 export async function POST(request: NextRequest) {

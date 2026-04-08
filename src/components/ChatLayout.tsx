@@ -112,7 +112,7 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
       try {
         const response = await fetch("/api/profile", { credentials: 'include' });
         const data = await response.json();
-        setIsAdmin(data.is_admin === 1);
+        setIsAdmin(data.is_admin === true || data.is_admin === 1);
       } catch (error) {
         console.error("Failed to check admin status:", error);
       }
@@ -264,13 +264,28 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
   const handleUnreadMessagesClick = () => {
     setActivePanel(null);
     refetchUnreadCount();
-    // Scroll to first unread message (one after last read)
-    if (lastReadMessageId && messages.length > 0) {
-      const lastReadIndex = messages.findIndex(m => m.id === lastReadMessageId);
+    if (messages.length === 0) return;
+
+    // Find first unread message: one after the last read, or first message from another user
+    let targetId: number | undefined;
+
+    if (lastReadMessageId) {
+      const lastReadIndex = messages.findIndex(m => 'id' in m && m.id === lastReadMessageId);
       if (lastReadIndex >= 0 && lastReadIndex < messages.length - 1) {
-        const firstUnreadMessage = messages[lastReadIndex + 1];
-        handleScrollToMessage(firstUnreadMessage.id);
+        const next = messages[lastReadIndex + 1];
+        if ('id' in next) targetId = next.id as number;
       }
+    }
+
+    // Fallback: scroll to the first message not from the current user
+    if (!targetId) {
+      const first = messages.find(m => 'user_id' in m);
+      if (first && 'id' in first) targetId = first.id as number;
+    }
+
+    if (targetId) {
+      // Small delay so the panel close animation doesn't interfere with scroll
+      setTimeout(() => handleScrollToMessage(targetId!), 150);
     }
   };
 

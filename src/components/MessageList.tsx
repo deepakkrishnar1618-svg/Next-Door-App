@@ -170,7 +170,14 @@ export default function MessageList({
   }, [safeMessages.length, showUnreadBadge]);
 
   const scrollToBottom = (smooth = true) => {
-    messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+    // Delay slightly so the DOM has finished rendering new messages before scrolling
+    setTimeout(() => {
+      if (containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      } else {
+        messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'end' });
+      }
+    }, 100);
   };
 
   const handleScroll = () => {
