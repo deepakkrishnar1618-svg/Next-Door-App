@@ -11,7 +11,12 @@ export default function AuthCallbackComplete() {
   useEffect(() => {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          flowType: 'implicit',
+        },
+      }
     )
 
     let timedOut = false
@@ -20,46 +25,32 @@ export default function AuthCallbackComplete() {
       timedOut = true
       setStatus('Session not found — redirecting...')
       router.replace('/?error=session')
-    }, 3000)
+    }, 5000)
 
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-
+    const navigate = (session: { user: unknown } | null) => {
       if (timedOut) return
-
-      if (session) {
-        clearTimeout(timeout)
-        // Check profile completion before deciding where to send the user
-        try {
-          const res = await fetch('/api/profile', { credentials: 'include' })
-          if (res.ok) {
-            const data = await res.json()
-            router.replace(data.profile_completed ? '/chat' : '/profile/setup')
-          } else {
-            router.replace('/profile/setup')
-          }
-        } catch {
-          router.replace('/profile/setup')
-        }
+      clearTimeout(timeout)
+      if (!session) {
+        router.replace('/?error=session')
+        return
       }
-      // If no session yet, the timeout will handle the fallback
+      fetch('/api/profile', { credentials: 'include' })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          router.replace(data?.profile_completed ? '/chat' : '/profile/setup')
+        })
+        .catch(() => router.replace('/profile/setup'))
     }
 
-    // Check immediately, then listen for the auth state change event in case
-    // the cookie hasn't propagated to the browser client quite yet
-    checkSession()
-
+    // onAuthStateChange fires with SIGNED_IN as soon as the implicit flow
+    // tokens from the URL hash are detected by the Supabase client.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (timedOut) return
-      if (session) {
-        clearTimeout(timeout)
-        fetch('/api/profile', { credentials: 'include' })
-          .then(res => res.ok ? res.json() : null)
-          .then(data => {
-            router.replace(data?.profile_completed ? '/chat' : '/profile/setup')
-          })
-          .catch(() => router.replace('/profile/setup'))
-      }
+      if (session) navigate(session)
+    })
+
+    // Also check immediately in case the event already fired
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) navigate(session)
     })
 
     return () => {

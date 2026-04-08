@@ -9,7 +9,7 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       auth: {
-        flowType: 'pkce',
+        flowType: 'implicit',
       },
       cookies: {
         getAll() {
@@ -37,7 +37,7 @@ export async function createServiceClient() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       auth: {
-        flowType: 'pkce',
+        flowType: 'implicit',
       },
       cookies: {
         getAll() {
