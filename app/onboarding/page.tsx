@@ -11,8 +11,11 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (!isPending && !user) { router.push("/"); return; }
-    const completed = localStorage.getItem("onboarding_completed");
-    if (completed === "true") router.push("/chat");
+    // Guard: localStorage is not available during SSR
+    if (typeof window !== 'undefined') {
+      const completed = localStorage.getItem("onboarding_completed");
+      if (completed === "true") router.push("/chat");
+    }
   }, [user, isPending, router]);
 
   if (isPending) {

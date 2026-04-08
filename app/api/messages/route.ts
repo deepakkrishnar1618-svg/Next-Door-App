@@ -8,11 +8,12 @@ export async function GET(request: NextRequest) {
   const groupId = request.nextUrl.searchParams.get('group_id') || 'main';
   const db = getServiceClient();
 
-  let query = db.from('messages').select(`
-    id, user_id, content, created_at, updated_at, is_edited, reply_to_message_id,
-    is_pinned, event_id, listing_id, is_deleted, group_id,
-    users!messages_user_id_fkey (name, avatar_url, room_number, is_deleted, is_active)
-  `).order('created_at', { ascending: true });
+  // Select messages without FK join — the messages table has no REFERENCES constraint
+  // so Supabase cannot resolve !messages_user_id_fkey and returns an error silently.
+  // We join user data manually below.
+  let query = db.from('messages').select(
+    'id, user_id, content, created_at, updated_at, is_edited, reply_to_message_id, is_pinned, event_id, listing_id, is_deleted, group_id'
+  ).order('created_at', { ascending: true });
 
   if (groupId === 'main') {
     query = query.or('group_id.eq.main,group_id.is.null');
@@ -21,31 +22,53 @@ export async function GET(request: NextRequest) {
   }
 
   const { data: rawMessages, error: msgErr } = await query;
-  if (msgErr) return json({ messages: [] });
 
-  const messages = (rawMessages || []).map((m: Record<string, unknown>) => {
-    const u = m.users as Record<string, unknown> | null;
+  if (msgErr) {
+    console.error('[GET /api/messages] DB error:', msgErr.message, msgErr.details);
+    return json([]);
+  }
+
+  console.log(`[GET /api/messages] group=${groupId} rows=${rawMessages?.length ?? 0}`);
+
+  // Collect unique user IDs and fetch their profiles in one query
+  const allUserIds = (rawMessages || []).map((m: Record<string, unknown>) => m.user_id as string);
+  const userIds = allUserIds.filter((id, idx) => allUserIds.indexOf(id) === idx);
+  const userMap: Record<string, Record<string, unknown>> = {};
+  if (userIds.length > 0) {
+    const { data: users } = await db.from('users')
+      .select('id, name, avatar_url, room_number, is_deleted, is_active')
+      .in('id', userIds);
+    for (const u of (users || [])) {
+      const rec = u as Record<string, unknown>;
+      userMap[rec.id as string] = rec;
+    }
+  }
+
+  type MsgRow = Record<string, unknown> & { id: number; user_id: string };
+  const messages: MsgRow[] = (rawMessages || []).map((m: Record<string, unknown>) => {
+    const u = userMap[m.user_id as string] || null;
     return {
       ...m,
-      users: undefined,
+      id: m.id as number,
+      user_id: m.user_id as string,
       user_name: u?.name || null,
       user_avatar_url: u?.avatar_url || null,
       user_room_number: u?.room_number || null,
       user_is_deleted: u?.is_deleted || null,
       user_is_active: u?.is_active || null,
-      reactions: [],
-      attachments: [],
-      reads: [],
+      reactions: [] as unknown[],
+      attachments: [] as unknown[],
+      reads: [] as unknown[],
     };
   });
 
   // Fetch reactions, attachments, reads for all messages
-  const messageIds = (messages as unknown as { id: number }[]).map((m) => m.id);
+  const messageIds = messages.map((m) => m.id);
   if (messageIds.length > 0) {
     const [{ data: reactions }, { data: attachments }, { data: reads }] = await Promise.all([
-      db.from('reactions').select('id, message_id, user_id, emoji, created_at, users!reactions_user_id_fkey(name)').in('message_id', messageIds),
+      db.from('reactions').select('id, message_id, user_id, emoji, created_at').in('message_id', messageIds),
       db.from('attachments').select('*').in('message_id', messageIds),
-      db.from('message_reads').select('id, message_id, user_id, read_at, users!message_reads_user_id_fkey(name, avatar_url)').in('message_id', messageIds),
+      db.from('message_reads').select('id, message_id, user_id, read_at').in('message_id', messageIds),
     ]);
 
     const reactMap: Record<number, unknown[]> = {};
@@ -54,35 +77,46 @@ export async function GET(request: NextRequest) {
 
     for (const r of (reactions || [])) {
       const rec = r as Record<string, unknown>;
-      if (!reactMap[rec.message_id as number]) reactMap[rec.message_id as number] = [];
-      const u = rec.users as Record<string, unknown> | null;
-      reactMap[rec.message_id as number].push({ ...rec, users: undefined, user_name: u?.name });
+      const mid = rec.message_id as number;
+      if (!reactMap[mid]) reactMap[mid] = [];
+      // Attach user name from our userMap
+      const uname = userMap[rec.user_id as string]?.name || null;
+      reactMap[mid].push({ ...rec, user_name: uname });
     }
     for (const a of (attachments || [])) {
       const rec = a as Record<string, unknown>;
-      if (!attMap[rec.message_id as number]) attMap[rec.message_id as number] = [];
-      attMap[rec.message_id as number].push(rec);
+      const mid = rec.message_id as number;
+      if (!attMap[mid]) attMap[mid] = [];
+      attMap[mid].push(rec);
     }
     for (const r of (reads || [])) {
       const rec = r as Record<string, unknown>;
-      if (!readMap[rec.message_id as number]) readMap[rec.message_id as number] = [];
-      const u = rec.users as Record<string, unknown> | null;
-      readMap[rec.message_id as number].push({ ...rec, users: undefined, user_name: u?.name, user_avatar_url: u?.avatar_url });
+      const mid = rec.message_id as number;
+      if (!readMap[mid]) readMap[mid] = [];
+      const u = userMap[rec.user_id as string] || null;
+      readMap[mid].push({ ...rec, user_name: u?.name || null, user_avatar_url: u?.avatar_url || null });
     }
 
     for (const m of messages) {
-      const msg = m as Record<string, unknown>;
-      msg.reactions = reactMap[msg.id as number] || [];
-      msg.attachments = attMap[msg.id as number] || [];
-      msg.reads = readMap[msg.id as number] || [];
+      m.reactions = reactMap[m.id as number] || [];
+      m.attachments = attMap[m.id as number] || [];
+      m.reads = readMap[m.id as number] || [];
     }
   }
 
-  // Also fetch system messages and merge
-  const { data: systemMsgs } = await db.from('system_messages').select('*').order('created_at', { ascending: true });
-  const combined = [...messages, ...(systemMsgs || []).map((s: Record<string, unknown>) => ({ ...s, type: 'system' }))]
-    .sort((a: Record<string, unknown>, b: Record<string, unknown>) =>
-      new Date(a.created_at as string).getTime() - new Date(b.created_at as string).getTime());
+  // Fetch system messages and merge
+  const { data: systemMsgs } = await db.from('system_messages')
+    .select('*').order('created_at', { ascending: true });
+
+  const combined = [
+    ...messages,
+    ...(systemMsgs || []).map((s: Record<string, unknown>) => ({ ...s, type: 'system' })),
+  ].sort((a, b) =>
+    new Date((a as Record<string, unknown>).created_at as string).getTime() -
+    new Date((b as Record<string, unknown>).created_at as string).getTime()
+  );
+
+  console.log(`[GET /api/messages] returning ${combined.length} total items (${messages.length} messages + ${systemMsgs?.length ?? 0} system)`);
 
   return json(combined);
 }
@@ -93,7 +127,7 @@ export async function POST(request: NextRequest) {
 
   const db = getServiceClient();
   const { data: caller } = await db.from('users').select('is_active, name, room_number').eq('id', userId).single();
-  // null means the column was never set on insert — treat as active. Only block when explicitly 0.
+  // is_active null = newly created row, treat as active. Only block when explicitly 0.
   if (!caller || caller.is_active === 0) return error('Your account has been deactivated', 403);
 
   const body = await request.json().catch(() => ({}));
@@ -114,9 +148,10 @@ export async function POST(request: NextRequest) {
 
   if (insertErr) return error('Failed to create message', 500);
 
-  // Insert attachments
   if (attachments?.length) {
-    await db.from('attachments').insert(attachments.map((a: Record<string, unknown>) => ({ ...a, message_id: msg.id })));
+    await db.from('attachments').insert(
+      attachments.map((a: Record<string, unknown>) => ({ ...a, message_id: msg.id }))
+    );
   }
 
   // Parse @mentions and create notifications
