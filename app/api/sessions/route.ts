@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     if (deletedUser) {
       await db.from('users').update({ email: null }).eq('id', deletedUser.id);
       await db.from('users').insert({
-        id: userId, email: userEmail, is_admin: isAdmin, is_online: true, profile_completed: false,
+        id: userId, email: userEmail, is_admin: isAdmin, is_active: 1, is_online: true, profile_completed: false,
       });
     } else {
       // Check if blocked
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         return error('Your account has been blocked', 403);
       }
       await db.from('users').insert({
-        id: userId, email: userEmail, is_admin: isAdmin, is_online: true, profile_completed: false,
+        id: userId, email: userEmail, is_admin: isAdmin, is_active: 1, is_online: true, profile_completed: false,
       });
     }
   } else {

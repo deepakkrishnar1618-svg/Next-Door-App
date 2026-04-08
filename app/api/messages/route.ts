@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
 
   const db = getServiceClient();
   const { data: caller } = await db.from('users').select('is_active, name, room_number').eq('id', userId).single();
+  // null means the column was never set on insert — treat as active. Only block when explicitly 0.
   if (!caller || caller.is_active === 0) return error('Your account has been deactivated', 403);
 
   const body = await request.json().catch(() => ({}));
