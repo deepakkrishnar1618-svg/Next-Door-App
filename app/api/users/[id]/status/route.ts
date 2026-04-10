@@ -30,6 +30,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
     await db.from('users').update({ is_active: 0, updated_at: new Date().toISOString() }).eq('id', targetId);
+    // Force sign out the blocked user from Supabase Auth
+    await db.auth.admin.signOut(targetId, 'global');
     if (targetUser) {
       await db.from('system_messages').insert({
         type: 'user_deactivated', user_id: targetId,
@@ -39,6 +41,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
   } else {
     await db.from('users').update({ is_active: 1, updated_at: new Date().toISOString() }).eq('id', targetId);
+    // Remove auth ban so user can log in again
+    await db.auth.admin.updateUserById(targetId, { ban_duration: 'none' });
     if (targetUser) {
       await db.from('system_messages').insert({
         type: 'user_reactivated', user_id: targetId,

@@ -12,16 +12,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { id: targetId } = await params;
   if (targetId === userId) return error('You cannot delete your own account', 400);
 
-  const { data: targetUser } = await db.from('users').select('email, name, room_number, avatar_url').eq('id', targetId).single();
+  const { data: targetUser } = await db.from('users').select('name, room_number').eq('id', targetId).single();
 
-  // Delete active events
-  const { data: userEvents } = await db.from('events').select('id, name').eq('creator_user_id', targetId);
-  for (const evt of (userEvents || [])) {
-    await db.from('event_members').delete().eq('event_id', evt.id);
-    await db.from('events').delete().eq('id', evt.id);
-  }
-
-  // Clean up user associations
+  // Clean up user associations (but keep messages — anonymized below)
   await db.from('reactions').delete().eq('user_id', targetId);
   await db.from('notifications').delete().or(`user_id.eq.${targetId},mentioned_by_user_id.eq.${targetId}`);
   await db.from('message_reads').delete().eq('user_id', targetId);
@@ -31,22 +24,32 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   await db.from('email_notification_users').delete().eq('user_id', targetId);
   await db.from('event_members').delete().eq('user_id', targetId);
 
-  // Archive the user ID
-  const archivedId = `deleted_${targetId}_${Date.now()}`;
-  await db.from('messages').update({ user_id: archivedId }).eq('user_id', targetId);
-  await db.from('event_messages').update({ user_id: archivedId }).eq('user_id', targetId);
-  await db.from('events').update({ creator_user_id: archivedId }).eq('creator_user_id', targetId);
+  // Delete active events created by this user
+  const { data: userEvents } = await db.from('events').select('id').eq('creator_user_id', targetId);
+  for (const evt of (userEvents || [])) {
+    await db.from('event_members').delete().eq('event_id', evt.id);
+    await db.from('events').delete().eq('id', evt.id);
+  }
 
+  // Anonymize the user record — keep the row (and user_id FK in messages) intact
   await db.from('users').update({
-    id: archivedId, email: archivedId, is_active: 0, is_deleted: true,
-    room_number: null, avatar_url: null, updated_at: new Date().toISOString(),
+    name: 'Deleted User',
+    email: `deleted_${targetId}@deleted.com`,
+    avatar_url: null,
+    room_number: null,
+    is_deleted: true,
+    is_active: 0,
+    updated_at: new Date().toISOString(),
   }).eq('id', targetId);
+
+  // Remove user from Supabase Auth
+  await db.auth.admin.deleteUser(targetId);
 
   if (targetUser) {
     await db.from('system_messages').insert({
-      type: 'user_deleted', user_id: archivedId,
+      type: 'user_deleted', user_id: targetId,
       message: `${targetUser.name || 'User'} was deleted`,
-      metadata: JSON.stringify({ message_type: 'user_deleted', name: targetUser.name, room_number: targetUser.room_number, avatar_url: targetUser.avatar_url }),
+      metadata: JSON.stringify({ message_type: 'user_deleted', name: targetUser.name, room_number: targetUser.room_number }),
     });
   }
 

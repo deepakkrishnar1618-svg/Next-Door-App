@@ -298,13 +298,13 @@ export default function HeaderMenu({ isAdmin, userCount, onEditProfile, onAdminS
             )
           ) : (
             <>
-              {!isEventChat && !isListingChat && onShowCreator && (
+              {!isEventChat && !isListingChat && onShowCreator && isAdmin && (
                 <button
                   onClick={() => handleMenuClick(onShowCreator)}
                   className="w-full flex items-center gap-3 px-m py-3 hover:bg-slate-50 dark:hover:bg-dark-elevated transition-colors text-left border-t border-slate-100 dark:border-slate-700"
                 >
                   <Crown className="w-5 h-5 text-amber-500" />
-                  <span className="text-slate-800 dark:text-white font-medium font-outfit">Creator</span>
+                  <span className="text-slate-800 dark:text-white font-medium font-outfit">Creator Profile</span>
                 </button>
               )}
               {!isEventChat && !isListingChat && onShowOnboarding && (

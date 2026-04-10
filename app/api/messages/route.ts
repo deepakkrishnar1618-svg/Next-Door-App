@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   // so Supabase cannot resolve !messages_user_id_fkey and returns an error silently.
   // We join user data manually below.
   let query = db.from('messages').select(
-    'id, user_id, content, created_at, updated_at, is_edited, reply_to_message_id, is_pinned, event_id, listing_id, is_deleted, group_id'
+    'id, user_id, content, created_at, updated_at, is_edited, reply_to_message_id, is_pinned, event_id, listing_id, is_deleted, group_id, is_active_announcement, announcement_expires_at'
   ).order('created_at', { ascending: true });
 
   if (groupId === 'main') {
@@ -44,9 +44,29 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Batch-fetch reply_to messages for preview
+  const replyIds = Array.from(new Set(
+    (rawMessages || [])
+      .map((m: Record<string, unknown>) => m.reply_to_message_id as number)
+      .filter(Boolean)
+  ));
+  const replyMap: Record<number, { content: string; user_id: string }> = {};
+  if (replyIds.length > 0) {
+    const { data: replyMsgs } = await db.from('messages')
+      .select('id, content, user_id')
+      .in('id', replyIds);
+    for (const r of (replyMsgs || [])) {
+      const rec = r as Record<string, unknown>;
+      replyMap[rec.id as number] = { content: rec.content as string, user_id: rec.user_id as string };
+    }
+  }
+
   type MsgRow = Record<string, unknown> & { id: number; user_id: string };
   const messages: MsgRow[] = (rawMessages || []).map((m: Record<string, unknown>) => {
     const u = userMap[m.user_id as string] || null;
+    const replyId = m.reply_to_message_id as number | null;
+    const reply = replyId ? replyMap[replyId] : null;
+    const replyUser = reply ? (userMap[reply.user_id] || null) : null;
     return {
       ...m,
       id: m.id as number,
@@ -57,6 +77,8 @@ export async function GET(request: NextRequest) {
       user_room_number: u?.room_number || null,
       user_is_deleted: u?.is_deleted || null,
       user_is_active: u?.is_active || null,
+      reply_to_content: reply?.content || null,
+      reply_to_user_name: replyUser?.name || null,
       reactions: [] as unknown[],
       attachments: [] as unknown[],
       reads: [] as unknown[],
@@ -131,9 +153,11 @@ export async function POST(request: NextRequest) {
   if (!userId) return error('Unauthorized', 401);
 
   const db = getServiceClient();
-  const { data: caller } = await db.from('users').select('is_active, name, room_number').eq('id', userId).single();
+  const { data: caller } = await db.from('users').select('is_active, name, room_number, is_admin').eq('id', userId).single();
   // is_active null = newly created row, treat as active. Only block when explicitly 0.
   if (!caller || caller.is_active === 0) return error('Your account has been deactivated', 403);
+
+  const isAdmin = caller.is_admin === 1 || caller.is_admin === true;
 
   const body = await request.json().catch(() => ({}));
   const { content, group_id = 'main', reply_to_message_id, attachments, hashtag_id } = body;
@@ -143,13 +167,30 @@ export async function POST(request: NextRequest) {
 
   const sanitized = sanitizeHtml(content);
 
-  const { data: msg, error: insertErr } = await db.from('messages').insert({
+  // Detect admin commands
+  const hasPinCommand = isAdmin && /#pin\b/i.test(sanitized);
+  const announcementMatch = isAdmin && sanitized.match(/@announcement(\d*)/i);
+  const announcementHours = announcementMatch ? (parseInt(announcementMatch[1] || '24') || 24) : null;
+
+  // Build message fields
+  const msgFields: Record<string, unknown> = {
     user_id: userId,
     content: sanitized,
     group_id,
     reply_to_message_id: reply_to_message_id || null,
     hashtag_id: hashtag_id || null,
-  }).select().single();
+  };
+
+  if (hasPinCommand) {
+    msgFields.is_pinned = true;
+  }
+
+  if (announcementMatch && announcementHours) {
+    msgFields.is_active_announcement = true;
+    msgFields.announcement_expires_at = new Date(Date.now() + announcementHours * 60 * 60 * 1000).toISOString();
+  }
+
+  const { data: msg, error: insertErr } = await db.from('messages').insert(msgFields).select().single();
 
   if (insertErr) return error('Failed to create message', 500);
 
@@ -159,8 +200,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Parse @mentions and create notifications
-  const mentions = sanitized.match(/@([^@\s,]+)/g) || [];
+  // Create reminder entry for announcements
+  if (announcementMatch && announcementHours && msg.id) {
+    await db.from('reminders').insert({
+      message_id: msg.id,
+      created_by_user_id: userId,
+      expires_at: msgFields.announcement_expires_at,
+    });
+  }
+
+  // Parse @mentions and create notifications (skip @announcement command itself)
+  const mentionMatches = sanitized.match(/@([^@\s,]+)/g) || [];
+  const mentions = mentionMatches.filter((m) => !/^@announcement/i.test(m));
   if (mentions.length > 0) {
     const { data: allUsers } = await db.from('users').select('id, name').eq('is_active', 1).eq('is_deleted', false);
     for (const mention of mentions) {
@@ -174,6 +225,19 @@ export async function POST(request: NextRequest) {
           mentioned_by_user_id: userId,
         });
       }
+    }
+  }
+
+  // Notify the original message author when someone replies to their message
+  if (reply_to_message_id) {
+    const { data: originalMsg } = await db.from('messages').select('user_id').eq('id', reply_to_message_id).single();
+    if (originalMsg && originalMsg.user_id !== userId) {
+      await db.from('notifications').insert({
+        user_id: originalMsg.user_id,
+        type: 'reply',
+        message_id: msg.id,
+        mentioned_by_user_id: userId,
+      });
     }
   }
 
