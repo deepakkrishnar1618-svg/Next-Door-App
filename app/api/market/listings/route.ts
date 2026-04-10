@@ -11,36 +11,54 @@ export async function GET(request: NextRequest) {
 
   const filter = request.nextUrl.searchParams.get('filter') || 'new';
 
-  let query = db
+  let baseQuery = db
     .from('market_listings')
-    .select(`
-      *,
-      users!market_listings_creator_user_id_fkey(name, avatar_url, room_number),
-      winner:users!market_listings_winner_user_id_fkey(name, avatar_url)
-    `)
-    .is('is_deleted', null).or('is_deleted.eq.false,is_deleted.eq.0');
+    .select('*')
+    .or('is_deleted.is.null,is_deleted.eq.false');
 
   if (filter === 'my') {
     // Creator OR interested
     const { data: interested } = await db.from('market_listing_interested').select('listing_id').eq('user_id', userId);
     const interestedIds = (interested || []).map((i: { listing_id: number }) => i.listing_id);
     if (interestedIds.length > 0) {
-      query = query.or(`creator_user_id.eq.${userId},id.in.(${interestedIds.join(',')})`);
+      baseQuery = baseQuery.or(`creator_user_id.eq.${userId},id.in.(${interestedIds.join(',')})`);
     } else {
-      query = query.eq('creator_user_id', userId);
+      baseQuery = baseQuery.eq('creator_user_id', userId);
     }
   } else {
     // New: active, not creator, not interested
-    query = query
+    baseQuery = baseQuery
       .in('status', ['open', 'discussion', 'confirmed'])
       .neq('creator_user_id', userId);
   }
 
-  const { data: listings } = await query.order('created_at', { ascending: false });
+  const { data: listings } = await baseQuery.order('created_at', { ascending: false });
+
+  // Batch-fetch creator user data
+  const creatorIds = Array.from(new Set((listings || []).map((l: Record<string, unknown>) => l.creator_user_id as string).filter(Boolean)));
+  const creatorUserMap: Record<string, Record<string, unknown>> = {};
+  if (creatorIds.length > 0) {
+    const { data: creatorUsers } = await db.from('users').select('id, name, avatar_url, room_number').in('id', creatorIds);
+    for (const u of (creatorUsers || [])) {
+      const rec = u as Record<string, unknown>;
+      creatorUserMap[rec.id as string] = rec;
+    }
+  }
+
+  // Batch-fetch winner user data
+  const winnerIds = Array.from(new Set((listings || []).map((l: Record<string, unknown>) => l.winner_user_id as string).filter(Boolean)));
+  const winnerUserMap: Record<string, Record<string, unknown>> = {};
+  if (winnerIds.length > 0) {
+    const { data: winnerUsers } = await db.from('users').select('id, name, avatar_url').in('id', winnerIds);
+    for (const u of (winnerUsers || [])) {
+      const rec = u as Record<string, unknown>;
+      winnerUserMap[rec.id as string] = rec;
+    }
+  }
 
   const enriched = await Promise.all((listings || []).map(async (l: Record<string, unknown>) => {
-    const u = l.users as Record<string, unknown> | null;
-    const w = l.winner as Record<string, unknown> | null;
+    const u = creatorUserMap[l.creator_user_id as string] || null;
+    const w = l.winner_user_id ? (winnerUserMap[l.winner_user_id as string] || null) : null;
 
     const { count: interestedCount } = await db.from('market_listing_interested').select('*', { count: 'exact', head: true }).eq('listing_id', l.id);
     const { data: isInterestedRow } = await db.from('market_listing_interested').select('id').eq('listing_id', l.id).eq('user_id', userId).maybeSingle();
@@ -49,9 +67,9 @@ export async function GET(request: NextRequest) {
     if (filter !== 'my' && isInterestedRow) return null; // skip if interested (new view)
 
     return {
-      ...l, users: undefined, winner: undefined,
-      creator_name: u?.name, creator_avatar: u?.avatar_url, creator_room: u?.room_number,
-      winner_name: w?.name, winner_avatar: w?.avatar_url,
+      ...l,
+      creator_name: u?.name ?? null, creator_avatar: u?.avatar_url ?? null, creator_room: u?.room_number ?? null,
+      winner_name: w?.name ?? null, winner_avatar: w?.avatar_url ?? null,
       interested_count: interestedCount || 0,
       is_interested: !!isInterestedRow ? 1 : 0,
       is_creator: l.creator_user_id === userId ? 1 : 0,

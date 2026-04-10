@@ -16,6 +16,9 @@ export async function POST(request: NextRequest) {
 
   if (!file) return error('No file provided', 400);
 
+  const maxFileSize = 4 * 1024 * 1024; // 4MB
+  if (file.size > maxFileSize) return error('File size exceeds 4MB limit', 413);
+
   const validation = validateFileUpload(file, type === 'profile' ? 'image' : 'attachment');
   if (!validation.valid) return error(validation.error || 'Invalid file', 400);
 

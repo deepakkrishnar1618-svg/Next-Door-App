@@ -145,13 +145,15 @@ export async function GET(request: NextRequest) {
       const rec = e as Record<string, unknown>;
       const u = evtUserMap[rec.creator_user_id as string] || null;
       const { count: memberCount } = await db.from('event_members').select('*', { count: 'exact', head: true }).eq('event_id', rec.id);
+      const { data: memberRow } = await db.from('event_members').select('id').eq('event_id', rec.id as number).eq('user_id', userId).maybeSingle();
       eventObjMap[rec.id as number] = {
         ...rec,
         creator_name: u?.name || null,
         creator_is_deleted: u?.is_deleted ?? null,
         creator_is_active: u?.is_active ?? null,
         current_members: memberCount || 0,
-        is_joined: false,
+        is_joined: !!memberRow,
+        is_creator: rec.creator_user_id === userId,
         is_expired: new Date(rec.end_datetime as string) <= new Date(),
       };
     }

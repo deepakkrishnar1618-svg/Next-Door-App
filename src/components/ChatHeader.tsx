@@ -56,7 +56,7 @@ export default function ChatHeader({
   const router = useRouter();
 
   return (
-    <header className="bg-gradient-primary shadow-soft sticky top-0 z-50">
+    <header className="bg-gradient-primary shadow-soft sticky top-0 z-[80]">
       <div className="max-w-7xl mx-auto px-m py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {showBackButton && onBack && (

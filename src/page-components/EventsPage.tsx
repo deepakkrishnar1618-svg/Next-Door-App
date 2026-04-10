@@ -270,7 +270,7 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
                 </p>
               )}
             </div>
-            {isMyEvent && event.is_creator === 1 && !isExpired && (
+            {isMyEvent && Boolean(event.is_creator) && !isExpired && (
               <span className="px-3 py-1 bg-primary-pine/20 dark:bg-primary-mint/20 text-primary-pine dark:text-primary-mint text-sm font-outfit font-semibold rounded-full">
                 Creator
               </span>
@@ -336,7 +336,7 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
                   )}
                 </button>
                 {!isExpired && (
-                  event.is_creator === 1 ? (
+                  Boolean(event.is_creator) ? (
                     <button onClick={() => setDeletingEventId(event.id)} className="p-3 bg-error/10 hover:bg-error/20 text-error rounded-lg transition-colors">
                       <Trash2 className="w-5 h-5" />
                     </button>

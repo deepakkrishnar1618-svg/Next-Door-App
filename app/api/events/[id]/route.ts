@@ -7,18 +7,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
   const db = getServiceClient();
 
-  const { data: evt } = await db.from('events')
-    .select('*, users!events_creator_user_id_fkey(name, is_deleted, is_active)')
-    .eq('id', parseInt(id)).single();
+  const { data: evt } = await db.from('events').select('*').eq('id', parseInt(id)).single();
   if (!evt) return error('Event not found', 404);
 
+  const { data: creatorUser } = await db.from('users').select('name, is_deleted, is_active').eq('id', evt.creator_user_id).maybeSingle();
   const { count } = await db.from('event_members').select('*', { count: 'exact', head: true }).eq('event_id', evt.id);
   const { data: membership } = await db.from('event_members').select('id').eq('event_id', evt.id).eq('user_id', userId).maybeSingle();
-  const u = (evt as Record<string, unknown>).users as Record<string, unknown> | null;
 
   return json({
-    ...evt, users: undefined,
-    creator_name: u?.name, creator_is_deleted: u?.is_deleted, creator_is_active: u?.is_active,
+    ...evt,
+    creator_name: creatorUser?.name ?? null,
+    creator_is_deleted: creatorUser?.is_deleted ?? null,
+    creator_is_active: creatorUser?.is_active ?? null,
     current_members: count || 0,
     is_joined: !!membership,
     is_creator: evt.creator_user_id === userId,

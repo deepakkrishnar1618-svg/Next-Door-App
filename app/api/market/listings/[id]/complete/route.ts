@@ -52,24 +52,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 }
 
 async function archiveToHistory(db: ReturnType<typeof getServiceClient>, listingId: number, isDeleted: boolean, helperUserIds?: string[], helperNames?: string[]) {
-  const { data: listing } = await db
-    .from('market_listings')
-    .select('*, creator:users!market_listings_creator_user_id_fkey(name, room_number), winner:users!market_listings_winner_user_id_fkey(name, room_number)')
-    .eq('id', listingId).single();
+  const { data: listing } = await db.from('market_listings').select('*').eq('id', listingId).single();
   if (!listing) return;
+
+  const { data: creatorUser } = await db.from('users').select('name, room_number').eq('id', listing.creator_user_id).maybeSingle();
+  const winnerUser = listing.winner_user_id
+    ? (await db.from('users').select('name, room_number').eq('id', listing.winner_user_id).maybeSingle()).data
+    : null;
 
   const { count: interestCount } = await db.from('market_listing_interested').select('*', { count: 'exact', head: true }).eq('listing_id', listingId);
   const { data: mainImage } = await db.from('market_listing_images').select('image_url').eq('listing_id', listingId).order('display_order', { ascending: true }).limit(1).maybeSingle();
-  const creator = listing.creator as Record<string, unknown> | null;
-  const winner = listing.winner as Record<string, unknown> | null;
 
   const { data: existing } = await db.from('market_listing_history').select('id').eq('listing_id', listingId).maybeSingle();
   const historyData = {
     is_deleted: isDeleted,
     total_interested: interestCount || 0,
     winner_user_id: listing.winner_user_id || null,
-    winner_name: winner?.name || null,
-    winner_room: winner?.room_number || null,
+    winner_name: winnerUser?.name || null,
+    winner_room: winnerUser?.room_number || null,
     helper_user_ids: helperUserIds ? JSON.stringify(helperUserIds) : null,
     helper_names: helperNames ? JSON.stringify(helperNames) : null,
     ended_at: new Date().toISOString(),
@@ -82,7 +82,7 @@ async function archiveToHistory(db: ReturnType<typeof getServiceClient>, listing
       listing_id: listingId, title: listing.title, description: listing.description,
       type: listing.type, transaction_type: listing.transaction_type, is_free: listing.is_free, price: listing.price,
       image_url: mainImage?.image_url || null,
-      creator_user_id: listing.creator_user_id, creator_name: creator?.name || 'Unknown', creator_room: creator?.room_number || null,
+      creator_user_id: listing.creator_user_id, creator_name: creatorUser?.name || 'Unknown', creator_room: creatorUser?.room_number || null,
       ...historyData,
     });
   }

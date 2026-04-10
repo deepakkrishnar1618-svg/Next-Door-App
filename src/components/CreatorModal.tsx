@@ -84,11 +84,53 @@ export default function CreatorModal({ onClose }: CreatorModalProps) {
     }
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const MAX_SIZE = 800;
+        let { width, height } = img;
+        if (width > MAX_SIZE || height > MAX_SIZE) {
+          if (width > height) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          } else {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('Canvas not supported'));
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          if (!blob) return reject(new Error('Failed to compress image'));
+          const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
+          resolve(compressed);
+        }, 'image/jpeg', 0.8);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to load image')); };
+      img.src = url;
+    });
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setCreatorImageFile(file);
-      setCreatorImagePreview(URL.createObjectURL(file));
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file);
+      if (compressed.size > 1 * 1024 * 1024) {
+        showToast('Image is too large. Please use a smaller image (max 1MB after compression).', 'error');
+        return;
+      }
+      setCreatorImageFile(compressed);
+      setCreatorImagePreview(URL.createObjectURL(compressed));
+    } catch {
+      showToast('Failed to process image. Please try a different file.', 'error');
     }
   };
 
@@ -333,7 +375,7 @@ export default function CreatorModal({ onClose }: CreatorModalProps) {
               {/* Image Section - Fourth */}
               {currentUserIsAdmin && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 font-outfit">Image (Optional)</label>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 font-outfit">Image (Optional) · Max 1MB, JPG/PNG</label>
                   <input
                     type="file"
                     ref={imageInputRef}

@@ -12,15 +12,25 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (!listing) return error('Listing not found', 404);
   if (listing.creator_user_id !== userId) return error('Only the creator can view interested users', 403);
 
-  const { data: users } = await db
+  const { data: rows } = await db
     .from('market_listing_interested')
-    .select('user_id, users!market_listing_interested_user_id_fkey(name, avatar_url, room_number)')
+    .select('user_id')
     .eq('listing_id', listingId)
     .order('created_at', { ascending: true });
 
-  const enriched = (users || []).map((row: Record<string, unknown>) => {
-    const u = row.users as Record<string, unknown> | null;
-    return { user_id: row.user_id, name: u?.name, avatar_url: u?.avatar_url, room_number: u?.room_number };
+  const userIds = (rows || []).map((r: Record<string, unknown>) => r.user_id as string);
+  if (!userIds.length) return json({ users: [] });
+
+  const { data: users } = await db.from('users').select('id, name, avatar_url, room_number').in('id', userIds);
+  const userMap: Record<string, Record<string, unknown>> = {};
+  for (const u of (users || [])) {
+    const rec = u as Record<string, unknown>;
+    userMap[rec.id as string] = rec;
+  }
+
+  const enriched = userIds.map(uid => {
+    const u = userMap[uid] || {};
+    return { user_id: uid, name: u.name || null, avatar_url: u.avatar_url || null, room_number: u.room_number || null };
   });
 
   return json({ users: enriched });

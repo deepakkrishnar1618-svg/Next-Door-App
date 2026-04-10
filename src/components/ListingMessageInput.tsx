@@ -36,7 +36,7 @@ export default function ListingMessageInput({ onOptimisticMessage, replyTo, onCa
   }, [message]);
 
   const MAX_ATTACHMENTS = 5;
-  const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30 MB
+  const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4 MB
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -50,7 +50,7 @@ export default function ListingMessageInput({ onOptimisticMessage, replyTo, onCa
     const validFiles: File[] = [];
     for (const file of files) {
       if (file.size > MAX_FILE_SIZE) {
-        alert(`"${file.name}" exceeds the 30 MB limit`);
+        alert(`"${file.name}" exceeds the 4 MB limit`);
         continue;
       }
       if (validFiles.length < remainingSlots) {

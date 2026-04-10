@@ -17,11 +17,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!isInterested) return error('Not authorized', 403);
   }
 
+  const now = new Date();
+  const members: Record<string, unknown>[] = [];
+
   // Creator
   const { data: creatorUser } = await db.from('users').select('id, name, avatar_url, room_number, is_online, last_seen_at').eq('id', listing.creator_user_id).single();
-  const now = new Date();
-
-  const members: Record<string, unknown>[] = [];
   if (creatorUser) {
     const lastSeen = creatorUser.last_seen_at ? new Date(creatorUser.last_seen_at) : null;
     members.push({
@@ -31,22 +31,31 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
   }
 
-  // Interested users
-  const { data: interested } = await db
+  // Interested users — batch-fetch instead of FK join
+  const { data: interestedRows } = await db
     .from('market_listing_interested')
-    .select('user_id, users!market_listing_interested_user_id_fkey(id, name, avatar_url, room_number, is_online, last_seen_at)')
+    .select('user_id')
     .eq('listing_id', listingId)
     .order('created_at', { ascending: true });
 
-  for (const row of (interested || [])) {
-    const u = (row as Record<string, unknown>).users as Record<string, unknown> | null;
-    if (!u) continue;
-    const lastSeen = u.last_seen_at ? new Date(u.last_seen_at as string) : null;
-    members.push({
-      ...u,
-      is_online: u.is_online && lastSeen && (now.getTime() - lastSeen.getTime()) < 2 * 60 * 1000 ? 1 : 0,
-      is_creator: false,
-    });
+  const interestedUserIds = (interestedRows || []).map((r: Record<string, unknown>) => r.user_id as string);
+  if (interestedUserIds.length > 0) {
+    const { data: interestedUsers } = await db.from('users').select('id, name, avatar_url, room_number, is_online, last_seen_at').in('id', interestedUserIds);
+    const interestedUserMap: Record<string, Record<string, unknown>> = {};
+    for (const u of (interestedUsers || [])) {
+      const rec = u as Record<string, unknown>;
+      interestedUserMap[rec.id as string] = rec;
+    }
+    for (const uid of interestedUserIds) {
+      const u = interestedUserMap[uid];
+      if (!u) continue;
+      const lastSeen = u.last_seen_at ? new Date(u.last_seen_at as string) : null;
+      members.push({
+        ...u,
+        is_online: u.is_online && lastSeen && (now.getTime() - lastSeen.getTime()) < 2 * 60 * 1000 ? 1 : 0,
+        is_creator: false,
+      });
+    }
   }
 
   return json({ members });

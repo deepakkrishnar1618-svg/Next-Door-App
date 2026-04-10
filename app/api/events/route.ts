@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
   // Post event card in main chat so it appears as a card
   const { data: chatMsg } = await db.from('messages').insert({
     user_id: userId,
-    content: `📅 New event: ${sanitizeHtml(name)}`,
+    content: `${caller.name} created a new event: ${sanitizeHtml(name)} - Join in!`,
     group_id: 'main',
     event_id: evt.id,
   }).select('id').single();

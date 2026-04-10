@@ -11,6 +11,8 @@ interface EventMessageDisplayProps {
 
 export default function EventMessageDisplay({ event, onJoinEvent, onGoToChat }: EventMessageDisplayProps) {
   const [timeRemaining, setTimeRemaining] = useState<string>('');
+  const [isJoining, setIsJoining] = useState(false);
+  const [joined, setJoined] = useState(Boolean(event.is_joined) || Boolean(event.is_creator));
   const [eventStatus, setEventStatus] = useState<EventStatus>(() => getEventStatus(event.start_datetime, event.end_datetime));
 
   // Update status every 30 seconds
@@ -38,6 +40,7 @@ export default function EventMessageDisplay({ event, onJoinEvent, onGoToChat }: 
   
   // Check if event has expired (ended but within 24 hour grace period) - only for joined users
   const isExpired = hasEnded && (event.is_expired === 1 || event.is_expired === true);
+  const isJoinedOrCreator = joined || Boolean(event.is_creator);
   
   // Check if event is full
   const isFull = (event.current_members ?? 0) >= event.max_members;
@@ -319,9 +322,9 @@ export default function EventMessageDisplay({ event, onJoinEvent, onGoToChat }: 
             </span>
           </div>
         </div>
-      ) : event.is_joined ? (
+      ) : isJoinedOrCreator ? (
         <div className="space-y-2">
-          <button 
+          <button
             onClick={() => onGoToChat?.(event.id, event.name)}
             className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-mint to-primary-pine hover:opacity-90 text-white rounded-button-rect font-outfit font-bold text-sm transition-opacity"
           >
@@ -354,11 +357,29 @@ export default function EventMessageDisplay({ event, onJoinEvent, onGoToChat }: 
         </button>
       ) : (
         <div className="space-y-2">
-          <button 
-            onClick={() => onJoinEvent?.(event.id)}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-mint to-primary-pine hover:opacity-90 text-white rounded-button-rect font-outfit font-bold text-sm transition-opacity"
+          <button
+            onClick={async () => {
+              if (isJoining) return;
+              setIsJoining(true);
+              setJoined(true); // optimistic
+              try {
+                const res = await fetch(`/api/events/${event.id}/join`, { method: 'POST', credentials: 'include' });
+                if (res.ok) {
+                  onJoinEvent?.(event.id);
+                  onGoToChat?.(event.id, event.name);
+                } else {
+                  setJoined(false); // revert
+                }
+              } catch {
+                setJoined(false); // revert
+              } finally {
+                setIsJoining(false);
+              }
+            }}
+            disabled={isJoining}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-mint to-primary-pine hover:opacity-90 text-white rounded-button-rect font-outfit font-bold text-sm transition-opacity disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Join Event
+            {isJoining ? 'Joining...' : 'Join Event'}
           </button>
           {eventStatus === 'upcoming' && (
             <div className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 dark:from-cyan-500/30 dark:to-teal-500/30 border-2 border-cyan-500 dark:border-cyan-400 rounded-button-rect">
