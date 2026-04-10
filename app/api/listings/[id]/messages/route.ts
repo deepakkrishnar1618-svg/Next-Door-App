@@ -20,44 +20,93 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!isInterested) return error('Not authorized to view this listing\'s messages', 403);
   }
 
+  // Fetch messages without FK joins (no REFERENCES constraints on listing_messages)
   const { data: messages } = await db
     .from('listing_messages')
-    .select(`
-      *,
-      users!listing_messages_user_id_fkey(name, avatar_url, room_number),
-      reply_msg:listing_messages!listing_messages_reply_to_message_id_fkey(content, user_id, users!listing_messages_user_id_fkey(name))
-    `)
+    .select('*')
     .eq('listing_id', listingId)
     .order('created_at', { ascending: true });
 
-  const enriched = await Promise.all((messages || []).map(async (msg: Record<string, unknown>) => {
-    const u = msg.users as Record<string, unknown> | null;
-    const replyMsg = msg.reply_msg as Record<string, unknown> | null;
-    const replyUser = replyMsg?.users as Record<string, unknown> | null;
+  if (!messages?.length) return json([]);
 
-    const { data: attachments } = await db.from('listing_message_attachments').select('*').eq('listing_message_id', msg.id);
-    const { data: reactions } = await db.from('listing_message_reactions')
-      .select('*, users!listing_message_reactions_user_id_fkey(name)')
-      .eq('listing_message_id', msg.id);
-    const { data: reads } = await db.from('listing_message_reads')
-      .select('*, users!listing_message_reads_user_id_fkey(name, avatar_url)')
-      .eq('listing_message_id', msg.id);
+  // Batch-fetch user data
+  const userIds = Array.from(new Set(messages.map((m: Record<string, unknown>) => m.user_id as string).filter(Boolean)));
+  const userMap: Record<string, Record<string, unknown>> = {};
+  if (userIds.length > 0) {
+    const { data: users } = await db.from('users').select('id, name, avatar_url, room_number').in('id', userIds);
+    for (const u of (users || [])) {
+      const rec = u as Record<string, unknown>;
+      userMap[rec.id as string] = rec;
+    }
+  }
 
+  // Batch-fetch reply messages for preview
+  const replyIds = Array.from(new Set(messages.map((m: Record<string, unknown>) => m.reply_to_message_id as number).filter(Boolean)));
+  const replyMap: Record<number, { content: string; user_id: string }> = {};
+  if (replyIds.length > 0) {
+    const { data: replyMsgs } = await db.from('listing_messages').select('id, content, user_id').in('id', replyIds);
+    for (const r of (replyMsgs || [])) {
+      const rec = r as Record<string, unknown>;
+      replyMap[rec.id as number] = { content: rec.content as string, user_id: rec.user_id as string };
+    }
+  }
+
+  // Batch-fetch attachments, reactions, reads
+  const msgIds = messages.map((m: Record<string, unknown>) => m.id as number);
+  const [{ data: allAttachments }, { data: allReactions }, { data: allReads }] = await Promise.all([
+    db.from('listing_message_attachments').select('*').in('listing_message_id', msgIds),
+    db.from('listing_message_reactions').select('id, listing_message_id, user_id, emoji, created_at').in('listing_message_id', msgIds),
+    db.from('listing_message_reads').select('id, listing_message_id, user_id, read_at').in('listing_message_id', msgIds),
+  ]);
+
+  const attMap: Record<number, unknown[]> = {};
+  const reactMap: Record<number, unknown[]> = {};
+  const readMap: Record<number, unknown[]> = {};
+  for (const a of (allAttachments || [])) {
+    const rec = a as Record<string, unknown>;
+    const mid = rec.listing_message_id as number;
+    if (!attMap[mid]) attMap[mid] = [];
+    attMap[mid].push(rec);
+  }
+  for (const r of (allReactions || [])) {
+    const rec = r as Record<string, unknown>;
+    const mid = rec.listing_message_id as number;
+    if (!reactMap[mid]) reactMap[mid] = [];
+    reactMap[mid].push({ ...rec, user_name: userMap[rec.user_id as string]?.name || null });
+  }
+  for (const r of (allReads || [])) {
+    const rec = r as Record<string, unknown>;
+    const mid = rec.listing_message_id as number;
+    if (!readMap[mid]) readMap[mid] = [];
+    const u = userMap[rec.user_id as string] || null;
+    readMap[mid].push({ ...rec, user_name: u?.name || null, user_avatar_url: u?.avatar_url || null });
+  }
+
+  const enriched = messages.map((msg: Record<string, unknown>) => {
+    const u = userMap[msg.user_id as string] || null;
+    const replyId = msg.reply_to_message_id as number | null;
+    const reply = replyId ? replyMap[replyId] : null;
+    const replyUser = reply ? (userMap[reply.user_id] || null) : null;
     const content = msg.content as string | null;
+    const mid = msg.id as number;
     return {
-      ...msg, users: undefined, reply_msg: undefined,
-      user_name: u?.name, avatar_url: u?.avatar_url, room_number: u?.room_number,
-      reply_to_content: replyMsg?.content, reply_to_user_id: replyMsg?.user_id, reply_to_user_name: replyUser?.name,
+      ...msg,
+      user_name: u?.name || null,
+      avatar_url: u?.avatar_url || null,
+      room_number: u?.room_number || null,
+      reply_to_content: reply?.content || null,
+      reply_to_user_id: reply?.user_id || null,
+      reply_to_user_name: replyUser?.name || null,
       is_join_message: content?.startsWith('joined_listing:') || content?.startsWith('created_listing:') || undefined,
       is_creator_join: content?.startsWith('created_listing:') || undefined,
       is_leave_message: content?.startsWith('left_listing:') || undefined,
       is_listing_details: content?.startsWith('listing_details:') || undefined,
       listing_details: content?.startsWith('listing_details:') ? (() => { try { return JSON.parse(content.substring('listing_details:'.length)); } catch { return null; } })() : undefined,
-      attachments: attachments || [],
-      reactions: (reactions || []).map((r: Record<string, unknown>) => ({ ...r, user_name: (r.users as Record<string, unknown> | null)?.name, users: undefined })),
-      reads: (reads || []).map((r: Record<string, unknown>) => ({ ...r, user_name: (r.users as Record<string, unknown> | null)?.name, user_avatar_url: (r.users as Record<string, unknown> | null)?.avatar_url, users: undefined })),
+      attachments: attMap[mid] || [],
+      reactions: reactMap[mid] || [],
+      reads: readMap[mid] || [],
     };
-  }));
+  });
 
   return json(enriched);
 }
@@ -85,11 +134,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { content, reply_to_message_id, attachments } = body;
   if (!content || typeof content !== 'string' || content.length > 5000) return error('Invalid content', 400);
 
-  const { data: msg } = await db.from('listing_messages').insert({
+  const { data: msg, error: insertErr } = await db.from('listing_messages').insert({
     listing_id: listingId, user_id: userId,
     content: sanitizeHtml(content),
     reply_to_message_id: reply_to_message_id || null,
   }).select().single();
+
+  if (insertErr || !msg) return error('Failed to send message', 500);
 
   if (attachments?.length) {
     for (const att of attachments) {
@@ -107,7 +158,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   return json({
     ...msg,
-    user_name: u?.name, avatar_url: u?.avatar_url, room_number: u?.room_number,
-    attachments: msgAttachments || [], reactions: [], reads: [],
+    user_name: u?.name || null,
+    avatar_url: u?.avatar_url || null,
+    room_number: u?.room_number || null,
+    attachments: msgAttachments || [],
+    reactions: [],
+    reads: [],
   }, 201);
 }

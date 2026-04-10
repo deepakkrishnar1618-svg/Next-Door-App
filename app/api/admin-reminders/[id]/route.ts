@@ -15,17 +15,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   await db.from('reminders').delete().eq('id', id);
 
-  // Bidirectional: also clear the announcement flag on the message
+  // Bidirectional: delete the linked announcement message from chat and clear all notifications
   if (reminder?.message_id) {
     await db.from('messages').update({
       is_active_announcement: false,
+      is_deleted: true,
       updated_at: new Date().toISOString(),
     }).eq('id', reminder.message_id);
 
-    // Remove announcement notifications for all users linked to this message
-    await db.from('notifications').delete()
-      .eq('message_id', reminder.message_id)
-      .eq('type', 'mention'); // clear any mention-type notifications for this message
+    // Remove all notifications linked to this message
+    await db.from('notifications').delete().eq('message_id', reminder.message_id);
   }
 
   return json({ success: true });

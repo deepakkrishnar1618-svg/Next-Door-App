@@ -18,9 +18,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { count: memberCount } = await db.from('event_members').select('*', { count: 'exact', head: true }).eq('event_id', eventId);
   if ((memberCount || 0) >= evt.max_members) return error('Event is full', 400);
 
-  // Check already joined
+  // Check already joined — return success silently to avoid 400 on duplicate clicks
   const { data: existing } = await db.from('event_members').select('id').eq('event_id', eventId).eq('user_id', userId).maybeSingle();
-  if (existing) return error('Already joined this event', 400);
+  if (existing) return json({ success: true, already_member: true });
 
   await db.from('event_members').insert({ event_id: eventId, user_id: userId, is_admin: 0 });
 

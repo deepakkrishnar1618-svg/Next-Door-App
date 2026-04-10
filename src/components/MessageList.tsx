@@ -87,6 +87,8 @@ export default function MessageList({
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [visibleMessages, setVisibleMessages] = useState<Set<number>>(new Set());
   const readTimeoutsRef = useRef<Map<number, NodeJS.Timeout>>(new Map());
+  const lastReadTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastReportedReadIdRef = useRef<number | null>(null);
   
   // Badge state management - keep stable across re-renders
   const [showUnreadBadge, setShowUnreadBadge] = useState(false);
@@ -246,39 +248,25 @@ export default function MessageList({
 
   // Mark messages as read after they've been visible for 1.5 seconds
   useEffect(() => {
-    const messagesToMark: number[] = [];
-
     visibleMessages.forEach((messageId) => {
       const message = regularMessages.find((m) => m.id === messageId);
       // Only mark as read if it's not our own message
       if (message && message.user_id !== currentUserId) {
-        // Clear any existing timeout for this message
         const existingTimeout = readTimeoutsRef.current.get(messageId);
-        if (existingTimeout) {
-          clearTimeout(existingTimeout);
-        }
+        if (existingTimeout) clearTimeout(existingTimeout);
 
-        // Set new timeout to mark as read after 1.5 seconds
         const timeout = setTimeout(() => {
-          messagesToMark.push(messageId);
-          
-          // Mark as read
           fetch('/api/messages/read', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ message_ids: [messageId] }),
-          }).catch((error) => {
-            console.error('Failed to mark message as read:', error);
-          });
+          }).catch(() => {});
 
-          // If this is the first unread message being read, dismiss the badge
           if (showUnreadBadge && messageId === initialFirstUnreadMessageId.current) {
             setShowUnreadBadge(false);
             sessionStorage.setItem('dismissedUnreadBadge', messageId.toString());
-            if (onUnreadBadgeDismissed) {
-              onUnreadBadgeDismissed();
-            }
+            if (onUnreadBadgeDismissed) onUnreadBadgeDismissed();
           }
 
           readTimeoutsRef.current.delete(messageId);
@@ -289,11 +277,42 @@ export default function MessageList({
     });
 
     return () => {
-      // Clear all timeouts when component unmounts or visibleMessages changes
       readTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
       readTimeoutsRef.current.clear();
     };
   }, [visibleMessages, regularMessages, currentUserId, showUnreadBadge, onUnreadBadgeDismissed]);
+
+  // 3-second timer: update last_read_message_id to the highest visible message ID
+  useEffect(() => {
+    if (visibleMessages.size === 0) return;
+
+    // Find the highest message ID among visible messages
+    let maxVisibleId = 0;
+    visibleMessages.forEach((id) => {
+      if (id > maxVisibleId) maxVisibleId = id;
+    });
+
+    if (!maxVisibleId || maxVisibleId === lastReportedReadIdRef.current) return;
+
+    if (lastReadTimerRef.current) clearTimeout(lastReadTimerRef.current);
+
+    lastReadTimerRef.current = setTimeout(() => {
+      // Only update if this is newer than what we last reported
+      if (maxVisibleId > (lastReportedReadIdRef.current || 0)) {
+        lastReportedReadIdRef.current = maxVisibleId;
+        fetch('/api/users/me', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ last_read_message_id: maxVisibleId }),
+        }).catch(() => {});
+      }
+    }, 3000);
+
+    return () => {
+      if (lastReadTimerRef.current) clearTimeout(lastReadTimerRef.current);
+    };
+  }, [visibleMessages]);
 
   // Scroll to highlighted message
   useEffect(() => {

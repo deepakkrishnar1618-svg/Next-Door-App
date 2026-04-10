@@ -159,12 +159,10 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
     try {
       const response = await fetch(`/api/events/${eventId}/join`, { method: "POST", credentials: "include" });
       if (response.ok) {
-        fetchUpcomingEvents();
-        fetchMyEvents();
-        setActiveTab("my-events");
+        router.push(`/events/${eventId}/chat`);
       } else {
-        const error = await response.json();
-        alert(error.error || "Failed to join event");
+        const err = await response.json();
+        alert(err.error || "Failed to join event");
       }
     } catch (error) {
       console.error("Error joining event:", error);
@@ -229,12 +227,8 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
     return `${duration} day${duration > 1 ? 's' : ''}`;
   };
 
-  const handleGoToChat = (eventId: number, eventName: string) => {
-    if (onGoToEventChat) {
-      onGoToEventChat(eventId, eventName);
-    } else {
-      router.push(`/chat?eventId=${eventId}&eventName=${encodeURIComponent(eventName)}`);
-    }
+  const handleGoToChat = (eventId: number, _eventName: string) => {
+    router.push(`/events/${eventId}/chat`);
   };
 
   const renderEventCard = (event: Event, isMyEvent: boolean = false) => {

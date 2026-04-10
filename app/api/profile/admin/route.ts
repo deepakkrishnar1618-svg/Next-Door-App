@@ -5,16 +5,32 @@ export async function GET() {
   // Public endpoint — no auth required to view the creator profile
   const db = getServiceClient();
 
+  // Try ADMIN_EMAIL first, fall back to any admin user
   const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail) return error('Admin profile not found', 404);
+  let adminUser = null;
 
-  const { data: adminUser } = await db
-    .from('users')
-    .select('id, name, email, room_number, avatar_url, description, creator_image_url, creator_link, is_admin')
-    .eq('email', adminEmail)
-    .single();
+  if (adminEmail) {
+    const { data } = await db
+      .from('users')
+      .select('id, name, email, room_number, avatar_url, description, creator_image_url, creator_link, is_admin')
+      .eq('email', adminEmail)
+      .maybeSingle();
+    adminUser = data;
+  }
 
-  if (!adminUser) return error('Admin profile not found', 404);
+  if (!adminUser) {
+    // Fall back to first admin user
+    const { data } = await db
+      .from('users')
+      .select('id, name, email, room_number, avatar_url, description, creator_image_url, creator_link, is_admin')
+      .or('is_admin.eq.true,is_admin.eq.1')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    adminUser = data;
+  }
+
+  if (!adminUser) return error('Creator profile not found', 404);
   return json(adminUser);
 }
 

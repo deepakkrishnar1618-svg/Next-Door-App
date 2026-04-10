@@ -420,7 +420,7 @@ export default function MessageBubble({
 
   const handleTogglePin = async () => {
     try {
-      const method = message.is_pinned === 1 ? "DELETE" : "POST";
+      const method = message.is_pinned ? "DELETE" : "POST";
       const response = await fetch(`/api/messages/${message.id}/pin`, {
         method,
         credentials: 'include',
