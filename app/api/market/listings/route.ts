@@ -100,27 +100,32 @@ export async function POST(request: NextRequest) {
     await db.from('market_listing_images').insert({ listing_id: listingId, image_url: images[i], display_order: i });
   }
 
-  // Create announcement in main chat
-  const announcementText = `🤝 New request in Quick Requests: "${sanitizeHtml(title)}" - Help them out!`;
+  // Post card in main chat — include listing_id so MessageBubble renders it as a card
+  const cardText = `🤝 New request: "${sanitizeHtml(title)}"`;
   let messageId: number | null = null;
   try {
-    const { data: msg } = await db.from('messages').insert({ user_id: userId, content: announcementText, group_id: 'main' }).select('id').single();
+    const { data: msg } = await db.from('messages').insert({
+      user_id: userId,
+      content: cardText,
+      group_id: 'main',
+      listing_id: listingId,
+    }).select('id').single();
     messageId = msg?.id || null;
-  } catch {
-    try {
-      const { data: msg } = await db.from('messages').insert({ user_id: userId, content: announcementText }).select('id').single();
-      messageId = msg?.id || null;
-    } catch { /* ignore */ }
-  }
+  } catch { /* ignore */ }
 
   if (messageId) {
     await db.from('market_listings').update({ message_id: messageId }).eq('id', listingId);
+  }
 
-    // Notify all active users
-    const { data: allUsers } = await db.from('users').select('id').eq('is_active', true).eq('is_deleted', false).neq('id', userId);
-    for (const u of (allUsers || [])) {
-      await db.from('notifications').insert({ user_id: (u as { id: string }).id, type: 'market_listing', message_id: messageId, mentioned_by_user_id: userId });
-    }
+  // Notify all active users (activity type)
+  const { data: allUsers } = await db.from('users').select('id').eq('is_active', true).eq('is_deleted', false).neq('id', userId);
+  for (const u of (allUsers || [])) {
+    await db.from('notifications').insert({
+      user_id: (u as { id: string }).id,
+      type: 'activity',
+      message_id: messageId,
+      mentioned_by_user_id: userId,
+    });
   }
 
   // Creator join message in listing chat

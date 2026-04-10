@@ -110,7 +110,7 @@ export default function CreateListingPage() {
 
       if (response.ok) {
         alert("Request created successfully!");
-        router.push("/market?tab=my");
+        router.push("/market?tab=my-listings");
       } else {
         const error = await response.json();
         alert(error.error || "Failed to create request");

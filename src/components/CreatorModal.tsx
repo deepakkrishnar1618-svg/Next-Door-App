@@ -51,9 +51,7 @@ export default function CreatorModal({ onClose }: CreatorModalProps) {
 
   const fetchAdminProfile = async () => {
     try {
-      const response = await fetch("/api/profile/admin", {
-        credentials: 'include'
-      });
+      const response = await fetch("/api/profile/admin");
       
       if (response.ok) {
         const data = await response.json();
@@ -131,8 +129,8 @@ export default function CreatorModal({ onClose }: CreatorModalProps) {
         creatorImageUrl = uploadData.url;
       }
 
-      const response = await fetch("/api/profile", {
-        method: "PUT",
+      const response = await fetch("/api/profile/admin", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: 'include',
         body: JSON.stringify({

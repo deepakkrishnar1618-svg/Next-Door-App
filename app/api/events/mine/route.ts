@@ -9,20 +9,35 @@ export async function GET() {
   const eventIds = (memberships || []).map((m: { event_id: number }) => m.event_id);
   if (!eventIds.length) return json({ events: [] });
 
+  // Fetch events without FK join (no REFERENCES constraint on events table)
   const { data: events } = await db.from('events')
-    .select('*, users!events_creator_user_id_fkey(name, is_deleted, is_active)')
+    .select('*')
     .in('id', eventIds).order('start_datetime', { ascending: true });
+
+  // Batch-fetch creator user data
+  const creatorIds = Array.from(new Set((events || []).map((e: Record<string, unknown>) => e.creator_user_id as string)));
+  const userMap: Record<string, Record<string, unknown>> = {};
+  if (creatorIds.length > 0) {
+    const { data: users } = await db.from('users').select('id, name, is_deleted, is_active').in('id', creatorIds);
+    for (const u of (users || [])) {
+      const rec = u as Record<string, unknown>;
+      userMap[rec.id as string] = rec;
+    }
+  }
 
   const now = new Date();
   const enriched = await Promise.all((events || []).map(async (evt: Record<string, unknown>) => {
     const { count } = await db.from('event_members').select('*', { count: 'exact', head: true }).eq('event_id', evt.id);
-    const u = evt.users as Record<string, unknown> | null;
+    const u = userMap[evt.creator_user_id as string] || null;
     const endTime = new Date(evt.end_datetime as string).getTime();
     return {
-      ...evt, users: undefined,
-      creator_name: u?.name, creator_is_deleted: u?.is_deleted, creator_is_active: u?.is_active,
+      ...evt,
+      creator_name: u?.name || null,
+      creator_is_deleted: u?.is_deleted ?? null,
+      creator_is_active: u?.is_active ?? null,
       current_members: count || 0,
-      is_joined: true, is_creator: evt.creator_user_id === userId,
+      is_joined: true,
+      is_creator: evt.creator_user_id === userId,
       is_expired: now.getTime() > endTime,
     };
   }));

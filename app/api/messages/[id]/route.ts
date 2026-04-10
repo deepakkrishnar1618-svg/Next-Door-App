@@ -44,8 +44,15 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const isAdmin = caller?.is_admin === 1 || caller?.is_admin === true;
   if (msg.user_id !== userId && !isAdmin) return error('Not authorized', 403);
 
-  await db.from('messages').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', parseInt(id));
-  await db.from('reactions').delete().eq('message_id', parseInt(id));
-  await db.from('message_reads').delete().eq('message_id', parseInt(id));
+  const msgId = parseInt(id);
+  await db.from('messages').update({ is_deleted: true, is_active_announcement: false, updated_at: new Date().toISOString() }).eq('id', msgId);
+  await db.from('reactions').delete().eq('message_id', msgId);
+  await db.from('message_reads').delete().eq('message_id', msgId);
+
+  // Bidirectional: remove any reminders linked to this message
+  await db.from('reminders').delete().eq('message_id', msgId);
+  // Remove activity/announcement notifications for this message
+  await db.from('notifications').delete().eq('message_id', msgId);
+
   return json({ success: true });
 }

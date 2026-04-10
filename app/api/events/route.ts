@@ -6,10 +6,21 @@ export async function GET() {
   if (!userId) return error('Unauthorized', 401);
   const db = getServiceClient();
 
-  // Upcoming events not yet joined by the current user
+  // Fetch events without FK join (no REFERENCES constraint on events table)
   const { data: events } = await db.from('events')
-    .select('*, users!events_creator_user_id_fkey(name, is_deleted, is_active)')
+    .select('*')
     .order('start_datetime', { ascending: true });
+
+  // Batch-fetch creator user data
+  const creatorIds = Array.from(new Set((events || []).map((e: Record<string, unknown>) => e.creator_user_id as string)));
+  const userMap: Record<string, Record<string, unknown>> = {};
+  if (creatorIds.length > 0) {
+    const { data: users } = await db.from('users').select('id, name, is_deleted, is_active').in('id', creatorIds);
+    for (const u of (users || [])) {
+      const rec = u as Record<string, unknown>;
+      userMap[rec.id as string] = rec;
+    }
+  }
 
   const now = new Date();
   const graceMs = 24 * 60 * 60 * 1000;
@@ -23,12 +34,12 @@ export async function GET() {
 
     if (membership) return null; // already joined
 
-    const u = evt.users as Record<string, unknown> | null;
+    const u = userMap[evt.creator_user_id as string] || null;
     return {
-      ...evt, users: undefined,
-      creator_name: u?.name,
-      creator_is_deleted: u?.is_deleted,
-      creator_is_active: u?.is_active,
+      ...evt,
+      creator_name: u?.name || null,
+      creator_is_deleted: u?.is_deleted ?? null,
+      creator_is_active: u?.is_active ?? null,
       current_members: memberCount || 0,
       is_joined: false,
       is_creator: evt.creator_user_id === userId,
@@ -77,11 +88,29 @@ export async function POST(request: NextRequest) {
   // Auto-join creator
   await db.from('event_members').insert({ event_id: evt.id, user_id: userId, is_admin: 1 });
 
-  // Notify all other active users
-  const { data: allUsers } = await db.from('users').select('id').eq('is_active', 1).eq('is_deleted', false).neq('id', userId);
-  for (const u of (allUsers || [])) {
-    await db.from('notifications').insert({ user_id: (u as { id: string }).id, type: 'event', message_id: null, mentioned_by_user_id: userId });
+  // Post event card in main chat so it appears as a card
+  const { data: chatMsg } = await db.from('messages').insert({
+    user_id: userId,
+    content: `📅 New event: ${sanitizeHtml(name)}`,
+    group_id: 'main',
+    event_id: evt.id,
+  }).select('id').single();
+
+  // Update event with message_id
+  if (chatMsg?.id) {
+    await db.from('events').update({ message_id: chatMsg.id }).eq('id', evt.id);
   }
 
-  return json(evt, 201);
+  // Notify all other active users (activity type)
+  const { data: allUsers } = await db.from('users').select('id').eq('is_active', 1).eq('is_deleted', false).neq('id', userId);
+  for (const u of (allUsers || [])) {
+    await db.from('notifications').insert({
+      user_id: (u as { id: string }).id,
+      type: 'activity',
+      message_id: chatMsg?.id || null,
+      mentioned_by_user_id: userId,
+    });
+  }
+
+  return json({ ...evt, message_id: chatMsg?.id || null }, 201);
 }

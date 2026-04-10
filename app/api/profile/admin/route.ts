@@ -2,8 +2,7 @@ import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error } from '@/src/lib/api-helpers';
 
 export async function GET() {
-  const userId = await authenticate();
-  if (!userId) return error('Unauthorized', 401);
+  // Public endpoint — no auth required to view the creator profile
   const db = getServiceClient();
 
   const adminEmail = process.env.ADMIN_EMAIL;

@@ -298,7 +298,7 @@ export default function HeaderMenu({ isAdmin, userCount, onEditProfile, onAdminS
             )
           ) : (
             <>
-              {!isEventChat && !isListingChat && onShowCreator && isAdmin && (
+              {!isEventChat && !isListingChat && onShowCreator && (
                 <button
                   onClick={() => handleMenuClick(onShowCreator)}
                   className="w-full flex items-center gap-3 px-m py-3 hover:bg-slate-50 dark:hover:bg-dark-elevated transition-colors text-left border-t border-slate-100 dark:border-slate-700"

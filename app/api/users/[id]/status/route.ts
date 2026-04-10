@@ -47,7 +47,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       await db.from('system_messages').insert({
         type: 'user_reactivated', user_id: targetId,
         message: `${targetUser.name || 'User'} was reactivated`,
-        metadata: JSON.stringify({ message_type: 'user_reactivated', name: targetUser.name }),
+        metadata: JSON.stringify({ message_type: 'user_reactivated', name: targetUser.name, room_number: targetUser.room_number, avatar_url: targetUser.avatar_url }),
       });
     }
   }

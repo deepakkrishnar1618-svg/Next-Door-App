@@ -127,6 +127,79 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Batch-fetch events for messages with event_id
+  const eventMsgIds = Array.from(new Set(messages.map(m => m.event_id as number).filter(Boolean)));
+  const eventObjMap: Record<number, Record<string, unknown>> = {};
+  if (eventMsgIds.length > 0) {
+    const { data: evts } = await db.from('events').select('*').in('id', eventMsgIds);
+    const evtCreatorIds = Array.from(new Set((evts || []).map((e: Record<string, unknown>) => e.creator_user_id as string)));
+    const evtUserMap: Record<string, Record<string, unknown>> = {};
+    if (evtCreatorIds.length > 0) {
+      const { data: evtUsers } = await db.from('users').select('id, name, is_deleted, is_active').in('id', evtCreatorIds);
+      for (const u of (evtUsers || [])) {
+        const rec = u as Record<string, unknown>;
+        evtUserMap[rec.id as string] = rec;
+      }
+    }
+    for (const e of (evts || [])) {
+      const rec = e as Record<string, unknown>;
+      const u = evtUserMap[rec.creator_user_id as string] || null;
+      const { count: memberCount } = await db.from('event_members').select('*', { count: 'exact', head: true }).eq('event_id', rec.id);
+      eventObjMap[rec.id as number] = {
+        ...rec,
+        creator_name: u?.name || null,
+        creator_is_deleted: u?.is_deleted ?? null,
+        creator_is_active: u?.is_active ?? null,
+        current_members: memberCount || 0,
+        is_joined: false,
+        is_expired: new Date(rec.end_datetime as string) <= new Date(),
+      };
+    }
+    for (const m of messages) {
+      const eid = m.event_id as number | null;
+      if (eid && eventObjMap[eid]) {
+        (m as Record<string, unknown>).event = eventObjMap[eid];
+      }
+    }
+  }
+
+  // Batch-fetch listings for messages with listing_id
+  const listingMsgIds = Array.from(new Set(messages.map(m => m.listing_id as number).filter(Boolean)));
+  const listingObjMap: Record<number, Record<string, unknown>> = {};
+  if (listingMsgIds.length > 0) {
+    const { data: listings } = await db.from('market_listings').select('*').in('id', listingMsgIds);
+    const listingCreatorIds = Array.from(new Set((listings || []).map((l: Record<string, unknown>) => l.creator_user_id as string)));
+    const listUserMap: Record<string, Record<string, unknown>> = {};
+    if (listingCreatorIds.length > 0) {
+      const { data: listUsers } = await db.from('users').select('id, name, avatar_url, room_number, is_deleted, is_active').in('id', listingCreatorIds);
+      for (const u of (listUsers || [])) {
+        const rec = u as Record<string, unknown>;
+        listUserMap[rec.id as string] = rec;
+      }
+    }
+    for (const l of (listings || [])) {
+      const rec = l as Record<string, unknown>;
+      const u = listUserMap[rec.creator_user_id as string] || null;
+      const { data: images } = await db.from('market_listing_images').select('image_url, display_order').eq('listing_id', rec.id).order('display_order', { ascending: true });
+      listingObjMap[rec.id as number] = {
+        ...rec,
+        creator_name: u?.name || null,
+        creator_avatar: u?.avatar_url || null,
+        creator_room: u?.room_number || null,
+        creator_is_deleted: u?.is_deleted ?? null,
+        creator_is_active: u?.is_active ?? null,
+        images: (images || []).map((img: Record<string, unknown>) => img.image_url),
+        is_creator: false,
+      };
+    }
+    for (const m of messages) {
+      const lid = m.listing_id as number | null;
+      if (lid && listingObjMap[lid]) {
+        (m as Record<string, unknown>).listing = listingObjMap[lid];
+      }
+    }
+  }
+
   // Fetch system messages (app-wide, no group filter) and merge
   const { data: systemMsgs } = await db.from('system_messages')
     .select('*').order('created_at', { ascending: true });
