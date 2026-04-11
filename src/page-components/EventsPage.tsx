@@ -178,10 +178,9 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
     try {
       const response = await fetch(`/api/events/${eventId}`, { method: "DELETE", credentials: "include" });
       if (response.ok) {
-        alert("Event deleted successfully");
         setDeletingEventId(null);
         setDeleteConfirmText("");
-        fetchMyEvents();
+        router.push('/events');
       } else {
         const error = await response.json();
         alert(error.error || "Failed to delete event");
@@ -573,7 +572,7 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
           <div className="bg-white dark:bg-dark-surface rounded-2xl p-6 max-w-md w-full shadow-xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-xl font-bold font-outfit text-dark-ocean dark:text-white mb-2">Delete Event</h3>
             <p className="text-slate-600 dark:text-slate-400 font-outfit mb-4">
-              This will permanently delete this event and all its messages. This action cannot be undone.
+              This will permanently delete the event, all messages and attachments. Type &quot;delete&quot; to confirm.
             </p>
             <input
               type="text"
@@ -595,7 +594,7 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-outfit font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Trash2 className="w-5 h-5" />
-                Delete Event
+                Delete
               </button>
             </div>
           </div>

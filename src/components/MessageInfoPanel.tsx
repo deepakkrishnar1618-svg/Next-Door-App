@@ -152,7 +152,7 @@ export default function MessageInfoPanel({
               {readBy.map((receipt) => (
                 <div key={receipt.user_id} className="flex items-center gap-3 px-xl py-m">
                   <img
-                    src={getUserAvatar(receipt.avatar_url || '', receipt.name || 'User')}
+                    src={getUserAvatar(receipt.user_id, receipt.avatar_url ?? null)}
                     alt={receipt.name || 'User'}
                     className="w-10 h-10 rounded-full object-cover"
                   />
@@ -188,7 +188,7 @@ export default function MessageInfoPanel({
               {deliveredTo.map((user) => (
                 <div key={user.user_id} className="flex items-center gap-3 px-xl py-m">
                   <img
-                    src={getUserAvatar(user.avatar_url || '', user.name || 'User')}
+                    src={getUserAvatar(user.user_id, user.avatar_url ?? null)}
                     alt={user.name || 'User'}
                     className="w-10 h-10 rounded-full object-cover"
                   />

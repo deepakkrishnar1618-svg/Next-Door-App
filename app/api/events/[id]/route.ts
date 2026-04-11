@@ -31,34 +31,91 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   if (!userId) return error('Unauthorized', 401);
   const { id } = await params;
   const db = getServiceClient();
+  const eventId = parseInt(id);
 
-  const { data: evt } = await db.from('events').select('*').eq('id', parseInt(id)).single();
+  const { data: evt } = await db.from('events').select('*').eq('id', eventId).single();
   if (!evt) return error('Event not found', 404);
 
   const { data: caller } = await db.from('users').select('is_admin').eq('id', userId).single();
   const isAdmin = caller?.is_admin === 1 || caller?.is_admin === true;
   if (evt.creator_user_id !== userId && !isAdmin) return error('Only the creator can delete this event', 403);
 
-  // Archive to history
-  const { count } = await db.from('event_members').select('*', { count: 'exact', head: true }).eq('event_id', parseInt(id));
-  const { data: creatorUser } = await db.from('users').select('name, room_number').eq('id', evt.creator_user_id).single();
-  const { data: members } = await db.from('event_members').select('user_id').eq('event_id', parseInt(id));
+  // Fetch all event message IDs for cascade delete
+  const { data: eventMsgs } = await db.from('event_messages').select('id, attachments:event_message_attachments(file_key)').eq('event_id', eventId);
+  const msgIds = (eventMsgs || []).map((m: Record<string, unknown>) => m.id as number);
+
+  // 1. Delete reads and reactions linked to event messages
+  if (msgIds.length > 0) {
+    await db.from('event_message_reads').delete().in('event_message_id', msgIds);
+    await db.from('event_message_reactions').delete().in('event_message_id', msgIds);
+  }
+
+  // 2. Delete attachment files from storage
+  const fileKeys: string[] = [];
+  for (const msg of (eventMsgs || [])) {
+    const atts = (msg as Record<string, unknown>).attachments as Array<{ file_key: string }> | null;
+    for (const att of (atts || [])) {
+      if (att.file_key) fileKeys.push(att.file_key);
+    }
+  }
+  if (fileKeys.length > 0) {
+    // file_key format: "bucket/path" — group by bucket
+    const byBucket: Record<string, string[]> = {};
+    for (const fk of fileKeys) {
+      const parts = fk.split('/');
+      const bucket = parts[0];
+      const path = parts.slice(1).join('/');
+      if (!byBucket[bucket]) byBucket[bucket] = [];
+      byBucket[bucket].push(path);
+    }
+    for (const [bucket, paths] of Object.entries(byBucket)) {
+      await db.storage.from(bucket).remove(paths);
+    }
+  }
+
+  // 3. Delete event_message_attachments rows
+  if (msgIds.length > 0) {
+    await db.from('event_message_attachments').delete().in('event_message_id', msgIds);
+  }
+
+  // 4. Delete event messages
+  await db.from('event_messages').delete().eq('event_id', eventId);
+
+  // 5. Delete event members
+  await db.from('event_members').delete().eq('event_id', eventId);
+
+  // 6. Delete notifications linked to the event's main chat message
+  if (evt.message_id) {
+    await db.from('notifications').delete().eq('message_id', evt.message_id);
+    // Soft-delete the original event card from main chat
+    await db.from('messages').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', evt.message_id);
+  }
+
+  // 7. Archive to history
+  const { count: memberCount } = await db.from('event_members').select('*', { count: 'exact', head: true }).eq('event_id', eventId);
+  const { data: members } = await db.from('event_members').select('user_id').eq('event_id', eventId);
+  const { data: creatorUser } = await db.from('users').select('name, room_number').eq('id', evt.creator_user_id).maybeSingle();
 
   const { data: histRecord } = await db.from('event_history').insert({
-    event_id: parseInt(id), name: evt.name, description: evt.description, location: evt.location,
+    event_id: eventId, name: evt.name, description: evt.description, location: evt.location,
     start_datetime: evt.start_datetime, end_datetime: evt.end_datetime, max_members: evt.max_members,
     image_url: evt.image_url, creator_user_id: evt.creator_user_id,
-    creator_name: (creatorUser as Record<string, unknown>)?.name, creator_room: (creatorUser as Record<string, unknown>)?.room_number,
-    total_attendees: count || 0, is_deleted: true, ended_at: new Date().toISOString(),
+    creator_name: (creatorUser as Record<string, unknown>)?.name,
+    creator_room: (creatorUser as Record<string, unknown>)?.room_number,
+    total_attendees: memberCount || 0, is_deleted: true, ended_at: new Date().toISOString(),
   }).select().single();
 
   if (histRecord && members) {
     for (const m of members) {
-      await db.from('event_history_attendees').insert({ event_history_id: (histRecord as { id: number }).id, user_id: (m as { user_id: string }).user_id });
+      await db.from('event_history_attendees').insert({
+        event_history_id: (histRecord as { id: number }).id,
+        user_id: (m as { user_id: string }).user_id,
+      });
     }
   }
 
-  await db.from('event_members').delete().eq('event_id', parseInt(id));
-  await db.from('events').delete().eq('id', parseInt(id));
+  // 8. Delete the event itself
+  await db.from('events').delete().eq('id', eventId);
+
   return json({ success: true });
 }

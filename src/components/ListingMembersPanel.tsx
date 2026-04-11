@@ -21,9 +21,10 @@ interface ListingMembersPanelProps {
   onClose: () => void;
 }
 
-export default function ListingMembersPanel({ members, currentUserId, onClose }: ListingMembersPanelProps) {
+export default function ListingMembersPanel({ members: membersProp, currentUserId, onClose }: ListingMembersPanelProps) {
   const router = useRouter();
-  
+  const members = membersProp ?? [];
+
   // Categorize members: active (online/offline), deactivated, and deleted
   const activeMembers = members.filter(m => !isDeletedUser(m.is_deleted) && !isDeactivatedUser(m.is_active, m.is_deleted));
   const deactivatedMembers = members.filter(m => isDeactivatedUser(m.is_active, m.is_deleted));

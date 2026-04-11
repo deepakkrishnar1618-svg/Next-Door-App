@@ -784,30 +784,30 @@ export default function MessageBubble({
                           Copy
                         </button>
                         {isOwnMessage && canEditOrDelete() && (
-                          <>
-                            <button
-                              onClick={() => {
-                                setIsEditing(true);
-                                setShowMenu(false);
-                                onSetActive(false);
-                              }}
-                              className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-slate-800 dark:text-white"
-                            >
-                              <Edit2 className="w-3 h-3" />
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                setShowMenu(false);
-                                onSetActive(false);
-                                handleDelete();
-                              }}
-                              className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-error"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                              Delete
-                            </button>
-                          </>
+                          <button
+                            onClick={() => {
+                              setIsEditing(true);
+                              setShowMenu(false);
+                              onSetActive(false);
+                            }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-slate-800 dark:text-white"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                            Edit
+                          </button>
+                        )}
+                        {isOwnMessage && (
+                          <button
+                            onClick={() => {
+                              setShowMenu(false);
+                              onSetActive(false);
+                              handleDelete();
+                            }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-error"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Delete
+                          </button>
                         )}
                         {onMessageInfo && message.id > 0 && (
                           <button
@@ -1002,28 +1002,28 @@ export default function MessageBubble({
                       Copy
                     </button>
                     {isOwnMessage && canEditOrDelete() && (
-                      <>
-                        <button
-                          onClick={() => {
-                            setIsEditing(true);
-                            setShowMenu(false);
-                          }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-slate-800 dark:text-white font-outfit"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowMenu(false);
-                            handleDelete();
-                          }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-error font-outfit"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          Delete
-                        </button>
-                      </>
+                      <button
+                        onClick={() => {
+                          setIsEditing(true);
+                          setShowMenu(false);
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-slate-800 dark:text-white font-outfit"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                        Edit
+                      </button>
+                    )}
+                    {isOwnMessage && (
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          handleDelete();
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-dark-elevated flex items-center gap-2 text-error font-outfit"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
                     )}
                     {isAdmin && (
                       <>
@@ -1170,7 +1170,7 @@ export default function MessageBubble({
           )}
         </div>
 
-        {isOwnMessage && message.reads && message.reads.length > 0 && (
+        {isOwnMessage && isLastReadMessage && message.reads && message.reads.length > 0 && (
           <div className={`flex items-center gap-1.5 mt-2 ${isOwnMessage ? "justify-end" : ""}`}>
             <div className="flex -space-x-2">
               {message.reads.slice(0, 3).map((read) => (

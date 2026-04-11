@@ -184,7 +184,7 @@ function ListingCard({ listing, onInterestChange, unreadCount = 0 }: { listing: 
   };
 
   const handleCompleteListing = async () => {
-    if (completeConfirmText !== "delete" || isCompleting) return;
+    if (completeConfirmText !== "complete" || isCompleting) return;
     setIsCompleting(true);
     try {
       const response = await fetch(`/api/market/listings/${listing.id}/complete`, {
@@ -520,13 +520,13 @@ function ListingCard({ listing, onInterestChange, unreadCount = 0 }: { listing: 
                 This will delete all messages and attachments from this request. This action cannot be undone.
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                Type <span className="font-semibold text-slate-700 dark:text-slate-300">"delete"</span> to confirm
+                Type <span className="font-semibold text-slate-700 dark:text-slate-300">"complete"</span> to confirm
               </p>
               <input
                 type="text"
                 value={completeConfirmText}
                 onChange={(e) => setCompleteConfirmText(e.target.value)}
-                placeholder='Type "delete"'
+                placeholder='Type "complete"'
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-dark-elevated text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 mb-4"
               />
               <div className="flex gap-3">
@@ -538,7 +538,7 @@ function ListingCard({ listing, onInterestChange, unreadCount = 0 }: { listing: 
                 </button>
                 <button
                   onClick={handleCompleteListing}
-                  disabled={completeConfirmText !== "delete" || isCompleting}
+                  disabled={completeConfirmText !== "complete" || isCompleting}
                   className="flex-1 px-4 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 dark:disabled:bg-slate-600 text-white font-medium transition-colors disabled:cursor-not-allowed"
                 >
                   {isCompleting ? "Completing..." : "Complete"}

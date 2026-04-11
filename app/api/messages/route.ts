@@ -179,6 +179,15 @@ export async function GET(request: NextRequest) {
         listUserMap[rec.id as string] = rec;
       }
     }
+    // Batch-fetch interested status for current user across all listings
+    const interestedSet = new Set<number>();
+    if (listingMsgIds.length > 0) {
+      const { data: interestRows } = await db.from('market_listing_interested').select('listing_id').eq('user_id', userId).in('listing_id', listingMsgIds);
+      for (const r of (interestRows || [])) {
+        interestedSet.add((r as Record<string, unknown>).listing_id as number);
+      }
+    }
+
     for (const l of (listings || [])) {
       const rec = l as Record<string, unknown>;
       const u = listUserMap[rec.creator_user_id as string] || null;
@@ -191,7 +200,8 @@ export async function GET(request: NextRequest) {
         creator_is_deleted: u?.is_deleted ?? null,
         creator_is_active: u?.is_active ?? null,
         images: (images || []).map((img: Record<string, unknown>) => img.image_url),
-        is_creator: false,
+        is_creator: rec.creator_user_id === userId ? 1 : 0,
+        is_interested: interestedSet.has(rec.id as number) ? 1 : 0,
       };
     }
     for (const m of messages) {

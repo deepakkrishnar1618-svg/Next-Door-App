@@ -415,11 +415,14 @@ export default function NotificationPanel({
                   {notifications.map((notification) => {
                     const isMarketListing = notification.type === 'market_listing';
                     const isEvent = notification.type === 'event';
-                    const notificationText = isMarketListing 
+                    const isActivity = notification.type === 'activity';
+                    const notificationText = isMarketListing
                       ? `${notification.mentioned_by_name} posted a new request`
                       : isEvent
                         ? `${notification.mentioned_by_name} created a new event`
-                        : `${notification.mentioned_by_name} mentioned you`;
+                        : isActivity && notification.message_content
+                          ? notification.message_content
+                          : `${notification.mentioned_by_name} mentioned you`;
                     
                     return (
                       <button
