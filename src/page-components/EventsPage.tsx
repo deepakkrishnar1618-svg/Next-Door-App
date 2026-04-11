@@ -171,8 +171,8 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
   };
 
   const handleDeleteEvent = async (eventId: number) => {
-    if (deleteConfirmText !== "Confirm") {
-      alert('Type "Confirm" to delete the event');
+    if (deleteConfirmText !== "delete") {
+      alert('Type "delete" to confirm deletion');
       return;
     }
     try {
@@ -579,7 +579,7 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
               type="text"
               value={deleteConfirmText}
               onChange={e => setDeleteConfirmText(e.target.value)}
-              placeholder='Type "Confirm" to delete'
+              placeholder='Type "delete" to confirm'
               className="w-full px-4 py-3 bg-transparent border border-red-500 rounded-xl text-dark-ocean dark:text-white placeholder-slate-400 font-outfit focus:outline-none mb-4"
             />
             <div className="flex items-center gap-3">
@@ -591,7 +591,7 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
               </button>
               <button
                 onClick={() => handleDeleteEvent(deletingEventId)}
-                disabled={deleteConfirmText !== "Confirm"}
+                disabled={deleteConfirmText !== "delete"}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-outfit font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Trash2 className="w-5 h-5" />

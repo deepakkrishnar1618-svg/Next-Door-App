@@ -413,7 +413,7 @@ export default function ListingChatView({ listingId, onBack }: ListingChatViewPr
       </div>
 
       {showMembersPanel && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in" onClick={() => setShowMembersPanel(false)}>
+        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in" onClick={() => setShowMembersPanel(false)}>
           <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-dark-ocean shadow-soft-lg dark:shadow-soft-dark animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
             <ListingMembersPanel
               members={members}
@@ -431,7 +431,7 @@ export default function ListingChatView({ listingId, onBack }: ListingChatViewPr
       />
 
       {showImagePreview && previewImage && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]" onClick={() => { setShowImagePreview(false); setPreviewImage(null); }}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]" onClick={() => { setShowImagePreview(false); setPreviewImage(null); }}>
           <div className="absolute right-0 top-0 bottom-0 w-full max-w-[600px] bg-white dark:bg-dark-ocean shadow-lg animate-slide-in-right" onClick={e => e.stopPropagation()}>
             <ImagePreviewPanel
               imageUrl={previewImage.url}

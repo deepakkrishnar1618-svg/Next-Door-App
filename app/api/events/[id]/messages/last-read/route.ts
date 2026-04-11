@@ -8,18 +8,25 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const db = getServiceClient();
   const eventId = parseInt(id);
 
+  // Fetch message IDs for this event that the user has read
   const { data: reads } = await db
     .from('event_message_reads')
-    .select('event_message_id, event_messages!event_message_reads_event_message_id_fkey(event_id)')
+    .select('event_message_id')
     .eq('user_id', userId);
 
-  const eventReads = (reads || []).filter((r: Record<string, unknown>) => {
-    const msg = r.event_messages as Record<string, unknown> | null;
-    return msg?.event_id === eventId;
-  });
+  if (!reads?.length) return json({ last_read_message_id: null });
 
-  const lastReadId = eventReads.length > 0
-    ? Math.max(...eventReads.map((r: Record<string, unknown>) => r.event_message_id as number))
+  const readMsgIds = reads.map((r: Record<string, unknown>) => r.event_message_id as number);
+
+  // Filter to messages belonging to this event
+  const { data: msgs } = await db
+    .from('event_messages')
+    .select('id')
+    .eq('event_id', eventId)
+    .in('id', readMsgIds);
+
+  const lastReadId = msgs?.length
+    ? Math.max(...msgs.map((m: Record<string, unknown>) => m.id as number))
     : null;
 
   return json({ last_read_message_id: lastReadId });

@@ -123,13 +123,13 @@ export default function HeaderMenu({ isAdmin, userCount, onEditProfile, onAdminS
                   Delete this event?
                 </p>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 font-outfit">
-                  Type "Confirm" to delete
+                  Type "delete" to confirm
                 </p>
                 <input
                   type="text"
                   value={deleteConfirmText}
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
-                  placeholder="Type Confirm"
+                  placeholder='Type "delete"'
                   className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-button-rect bg-white dark:bg-dark-elevated text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm font-outfit mb-3 focus:outline-none focus:ring-2 focus:ring-error"
                   autoFocus
                 />
@@ -146,14 +146,14 @@ export default function HeaderMenu({ isAdmin, userCount, onEditProfile, onAdminS
                   </button>
                   <button
                     onClick={() => {
-                      if (deleteConfirmText === "Confirm") {
+                      if (deleteConfirmText === "delete") {
                         onDeleteEvent();
                         setShowDeleteConfirm(false);
                         setDeleteConfirmText("");
                         setIsOpen(false);
                       }
                     }}
-                    disabled={deleteConfirmText !== "Confirm"}
+                    disabled={deleteConfirmText !== "delete"}
                     className="flex-1 flex items-center justify-center gap-2 px-m py-2 bg-error hover:bg-error/90 text-white rounded-button-rect transition-colors font-outfit disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Check className="w-4 h-4" />
@@ -213,13 +213,13 @@ export default function HeaderMenu({ isAdmin, userCount, onEditProfile, onAdminS
                   Delete this listing?
                 </p>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 font-outfit">
-                  Type "Confirm" to delete
+                  Type "delete" to confirm
                 </p>
                 <input
                   type="text"
                   value={deleteListingConfirmText}
                   onChange={(e) => setDeleteListingConfirmText(e.target.value)}
-                  placeholder="Type Confirm"
+                  placeholder='Type "delete"'
                   className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-button-rect bg-white dark:bg-dark-elevated text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm font-outfit mb-3 focus:outline-none focus:ring-2 focus:ring-error"
                   autoFocus
                 />
@@ -236,14 +236,14 @@ export default function HeaderMenu({ isAdmin, userCount, onEditProfile, onAdminS
                   </button>
                   <button
                     onClick={() => {
-                      if (deleteListingConfirmText === "Confirm") {
+                      if (deleteListingConfirmText === "delete") {
                         onDeleteListing();
                         setShowDeleteListingConfirm(false);
                         setDeleteListingConfirmText("");
                         setIsOpen(false);
                       }
                     }}
-                    disabled={deleteListingConfirmText !== "Confirm"}
+                    disabled={deleteListingConfirmText !== "delete"}
                     className="flex-1 flex items-center justify-center gap-2 px-m py-2 bg-error hover:bg-error/90 text-white rounded-button-rect transition-colors font-outfit disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Check className="w-4 h-4" />

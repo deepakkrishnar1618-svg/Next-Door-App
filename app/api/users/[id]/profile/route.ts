@@ -26,16 +26,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .select('helper_user_ids').like('helper_user_ids', `%"${targetId}"%`);
   const helpedOthers = helperRows?.length || 0;
 
-  const { data: attachmentRows } = await db
-    .from('attachments')
-    .select('id, file_key, filename, created_at, message_id')
-    .eq('content_type', 'image/%');
-
-  // Filter by user's messages
-  const { data: userMsgIds } = await db.from('messages').select('id').eq('user_id', targetId);
+  // Fetch user's image attachments from main group messages only
+  const { data: userMsgIds } = await db.from('messages').select('id')
+    .eq('user_id', targetId).eq('group_id', 'main').or('is_deleted.is.null,is_deleted.eq.false');
   const idSet = new Set((userMsgIds || []).map((m: { id: number }) => m.id));
+
+  const { data: attachmentRows } = idSet.size > 0
+    ? await db.from('attachments').select('id, file_key, filename, created_at, message_id, content_type')
+        .in('message_id', Array.from(idSet))
+    : { data: [] };
+
   const media = (attachmentRows || [])
-    .filter((a: { message_id: number }) => idSet.has(a.message_id))
+    .filter((a: { content_type: string }) => a.content_type?.startsWith('image/'))
+    .sort((a: { created_at: string }, b: { created_at: string }) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 30)
     .map((a: { id: number; file_key: string; filename: string; created_at: string }) => ({
       id: a.id,

@@ -802,7 +802,7 @@ export default function EventChatView({ eventId, eventName, onBack }: EventChatV
 
       {/* Mobile/Tablet overlay - covers full screen */}
       {showMembersPanel && user && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in" onClick={() => setShowMembersPanel(false)}>
+        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in" onClick={() => setShowMembersPanel(false)}>
           <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-dark-ocean shadow-soft-lg dark:shadow-soft-dark animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
             <EventUserList
               users={members}
@@ -815,7 +815,7 @@ export default function EventChatView({ eventId, eventName, onBack }: EventChatV
 
       {/* Mobile Image Preview Overlay */}
       {showImagePreview && previewImage && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in" onClick={() => {
+        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in" onClick={() => {
           setShowImagePreview(false);
           setPreviewImage(null);
         }}>
@@ -834,7 +834,7 @@ export default function EventChatView({ eventId, eventName, onBack }: EventChatV
 
       {/* Mobile Message Info Overlay */}
       {showMessageInfo && messageInfoId && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in" onClick={() => {
+        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in" onClick={() => {
           setShowMessageInfo(false);
           setMessageInfoId(null);
         }}>
@@ -876,7 +876,7 @@ export default function EventChatView({ eventId, eventName, onBack }: EventChatV
 
       {/* Creator modal */}
       {showCreator && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in" onClick={() => setShowCreator(false)}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in" onClick={() => setShowCreator(false)}>
           <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-dark-ocean shadow-soft-lg dark:shadow-soft-dark animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
             <CreatorModal onClose={() => setShowCreator(false)} />
           </div>

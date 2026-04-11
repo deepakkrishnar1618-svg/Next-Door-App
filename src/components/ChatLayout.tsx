@@ -722,7 +722,7 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
       
       {/* Mobile user list overlay */}
       {activePanel === 'users' && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in" onClick={() => setActivePanel(null)}>
+        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in" onClick={() => setActivePanel(null)}>
           <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-dark-ocean shadow-soft-lg dark:shadow-soft-dark animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
             <UserList users={users} currentUserId={user.id} onClose={() => setActivePanel(null)} />
           </div>
@@ -731,7 +731,7 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
 
       {/* Mobile admin settings overlay */}
       {activePanel === 'admin' && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in" onClick={() => setActivePanel(null)}>
+        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in" onClick={() => setActivePanel(null)}>
           <div className="absolute right-0 top-0 bottom-0 w-96 max-w-[85vw] bg-white dark:bg-dark-ocean shadow-soft-lg dark:shadow-soft-dark animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
             <AdminSettingsModal onClose={() => setActivePanel(null)} />
           </div>
@@ -740,7 +740,7 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
 
       {/* Mobile search overlay */}
       {activePanel === 'search' && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in" onClick={() => setActivePanel(null)}>
+        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in" onClick={() => setActivePanel(null)}>
           <div className="absolute right-0 top-0 bottom-0 w-96 max-w-[85vw] bg-white dark:bg-dark-ocean shadow-soft-lg dark:shadow-soft-dark animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
             <SearchPanel 
               onClose={() => setActivePanel(null)} 
@@ -752,7 +752,7 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
 
       {/* Mobile image preview overlay */}
       {activePanel === 'imagePreview' && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in" onClick={() => setActivePanel(null)}>
+        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in" onClick={() => setActivePanel(null)}>
           <div className="absolute right-0 top-0 bottom-0 w-full max-w-[600px] bg-white dark:bg-dark-ocean shadow-soft-lg dark:shadow-soft-dark animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
             <ImagePreviewPanel 
               imageUrl={previewImageUrl}
@@ -765,7 +765,7 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
 
       {/* Mobile creator overlay */}
       {activePanel === 'creator' && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in" onClick={() => setActivePanel(null)}>
+        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in" onClick={() => setActivePanel(null)}>
           <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-dark-ocean shadow-soft-lg dark:shadow-soft-dark animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
             <CreatorModal onClose={() => setActivePanel(null)} />
           </div>
@@ -774,7 +774,7 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
 
       {/* Mobile message info overlay */}
       {activePanel === 'messageInfo' && messageInfoId && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] animate-in" onClick={() => setActivePanel(null)}>
+        <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in" onClick={() => setActivePanel(null)}>
           <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-dark-ocean shadow-soft-lg dark:shadow-soft-dark animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
             <MessageInfoPanel messageId={messageInfoId} onClose={() => setActivePanel(null)} groupType="main" />
           </div>
@@ -783,7 +783,7 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
 
       {/* Notification dropdown */}
       {activePanel === 'notifications' && (
-        <div className="fixed inset-0 z-[60]" onClick={() => setActivePanel(null)}>
+        <div className="fixed inset-0 z-[9998]" onClick={() => setActivePanel(null)}>
           <div onClick={(e) => e.stopPropagation()}>
             <NotificationPanel 
               onClose={() => setActivePanel(null)}

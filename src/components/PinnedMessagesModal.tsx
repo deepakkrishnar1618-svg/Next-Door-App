@@ -34,7 +34,7 @@ export default function PinnedMessagesModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-in"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] flex items-center justify-center p-4 animate-in"
       onClick={onClose}
     >
       <div 

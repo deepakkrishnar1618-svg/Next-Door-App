@@ -1170,7 +1170,7 @@ export default function MessageBubble({
           )}
         </div>
 
-        {isOwnMessage && isLastReadMessage && message.reads && message.reads.length > 0 && (
+        {isOwnMessage && message.reads && message.reads.length > 0 && (
           <div className={`flex items-center gap-1.5 mt-2 ${isOwnMessage ? "justify-end" : ""}`}>
             <div className="flex -space-x-2">
               {message.reads.slice(0, 3).map((read) => (

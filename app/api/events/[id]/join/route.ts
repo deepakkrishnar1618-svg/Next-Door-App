@@ -12,7 +12,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!caller || caller.is_active === 0 || caller.is_active === false) return error('Your account has been deactivated', 403);
 
   // Check event exists and is not expired
-  const { data: evt } = await db.from('events').select('*, event_members(count)').eq('id', eventId).gt('end_datetime', new Date().toISOString()).single();
+  const { data: evt } = await db.from('events').select('id, max_members').eq('id', eventId).gt('end_datetime', new Date().toISOString()).maybeSingle();
   if (!evt) return error('Event not found or has ended', 400);
 
   const { count: memberCount } = await db.from('event_members').select('*', { count: 'exact', head: true }).eq('event_id', eventId);
