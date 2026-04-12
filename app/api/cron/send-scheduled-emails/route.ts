@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from: 'Next Door <noreply@nextdoor.website>',
+          reply_to: 'deepakkrishnar1618@gmail.com',
           to: u.email,
           subject: '🏠 Next Door - You have new activity!',
           html: `<p>There are unread messages and new events from your neighbors. <a href="${appUrl}/chat">Open Next Door →</a></p>`,
