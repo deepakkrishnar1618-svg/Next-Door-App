@@ -41,10 +41,10 @@ export default function TermsOfService() {
               Eligibility
             </h2>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-              Next Door is exclusively for residents of the Interchange community. By using this service, you represent that:
+              Next Door is exclusively for residents of the Next Door community. By using this service, you represent that:
             </p>
             <ul className="list-disc pl-6 text-slate-600 dark:text-slate-300 space-y-2 mt-4">
-              <li>You are a current resident of the Interchange building</li>
+              <li>You are a current resident of the Next Door building</li>
               <li>You are at least 18 years of age</li>
               <li>The room/apartment number you provide is accurate</li>
               <li>You will not share your account access with non-residents</li>
@@ -186,7 +186,7 @@ export default function TermsOfService() {
             </p>
             <ul className="list-disc pl-6 text-slate-600 dark:text-slate-300 space-y-2">
               <li>You violate these Terms of Service</li>
-              <li>You are no longer a resident of the Interchange community</li>
+              <li>You are no longer a resident of the Next Door community</li>
               <li>You engage in behavior harmful to other community members</li>
               <li>You request account deletion</li>
             </ul>

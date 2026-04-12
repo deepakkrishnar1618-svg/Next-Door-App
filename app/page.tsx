@@ -85,7 +85,7 @@ export default function HomePage() {
           NEXT DOOR
         </h1>
         <p className="text-[#9CA3AF] dark:text-slate-400 text-xs sm:text-sm mb-6 font-light text-center">
-          Interchange neighborhood chat
+          Neighbourhood chat
         </p>
         <button
           onClick={redirectToLogin}
@@ -94,7 +94,7 @@ export default function HomePage() {
           Sign in with Google
         </button>
         <p className="text-[#9CA3AF] dark:text-slate-400 text-xs sm:text-sm text-center font-light px-2">
-          Stay connected with your Interchange neighborhood
+          Stay connected with your neighbourhood
         </p>
         <div className="mt-4 flex justify-center gap-4 text-xs text-[#9CA3AF] dark:text-slate-500">
           <Link href="/privacy" className="hover:text-emerald-500 dark:hover:text-primary-mint transition-colors">Privacy Policy</Link>

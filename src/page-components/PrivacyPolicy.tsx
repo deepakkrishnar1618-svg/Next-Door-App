@@ -32,7 +32,7 @@ export default function PrivacyPolicy() {
               Introduction
             </h2>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-              Next Door ("we," "our," or "us") is a neighborhood chat application designed exclusively for residents of the Interchange community. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application.
+              Next Door ("we," "our," or "us") is a neighborhood chat application designed exclusively for residents of the Next Door community. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application.
             </p>
           </section>
 
@@ -101,7 +101,7 @@ export default function PrivacyPolicy() {
               <li>Enable community features like event planning, request coordination, and group discussions</li>
               <li>Show read receipts and typing indicators to enhance communication</li>
               <li>Display activity statistics on your profile</li>
-              <li>Verify you are a resident of the Interchange community</li>
+              <li>Verify you are a resident of the Next Door community</li>
               <li>Maintain security and prevent abuse</li>
               <li>Archive completed events and requests for history viewing</li>
             </ul>

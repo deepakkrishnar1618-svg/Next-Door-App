@@ -8,13 +8,14 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: "Next Door",
-  description: "Your neighbourhood community",
+  description: "Your neighbourhood chat",
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
       { url: '/icon.svg', type: 'image/svg+xml' },
     ],
-    apple: { url: '/icon.svg', type: 'image/svg+xml' },
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.svg',
   },
 };
 
