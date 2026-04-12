@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/src/lib/auth-hook";
 import { ThemeProvider } from "@/src/context/ThemeContext";
 import { ToastProvider } from "@/src/context/ToastContext";
+import { Analytics } from "@vercel/analytics/next";
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,7 @@ export default function RootLayout({
             </ToastProvider>
           </ThemeProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
