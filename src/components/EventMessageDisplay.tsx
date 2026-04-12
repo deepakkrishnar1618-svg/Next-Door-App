@@ -1,4 +1,4 @@
-import { Calendar, MapPin, Clock, Users, MessageCircle, XCircle, User, Sparkles, Zap } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, MessageCircle, XCircle, CheckCircle2, User, Sparkles, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getEventStatus, type EventStatus } from "@/src/components/EventStatusBadge";
 import type { Event } from "@/src/lib/types";
@@ -93,23 +93,31 @@ export default function EventMessageDisplay({ event, onJoinEvent, onGoToChat }: 
 
   return (
     <div className={`max-w-[85%] sm:max-w-md backdrop-blur-xl rounded-3xl p-6 space-y-4 shadow-lg ${
-      isDeleted || isCreatorDeactivated || (hasEnded && !event.is_joined)
+      isDeleted || isCreatorDeactivated
         ? 'bg-slate-400/30 dark:bg-slate-700/30 border border-slate-400/50 dark:border-slate-600/50'
-        : 'bg-gradient-to-br from-primary-mint/50 via-primary-mint/35 to-primary-pine/45 dark:bg-[linear-gradient(to_bottom_right,rgba(52,211,153,0.35)_10%,#1a2d2d_70%)] border border-primary-mint/40 dark:border-primary-mint/30 shadow-[0_0_12px_rgba(74,255,159,0.15)] dark:shadow-[0_0_8px_rgba(52,211,153,0.15)]'
+        : hasEnded && !event.is_joined
+          ? 'bg-emerald-50/60 dark:bg-emerald-900/20 border border-emerald-300/50 dark:border-emerald-700/50'
+          : 'bg-gradient-to-br from-primary-mint/50 via-primary-mint/35 to-primary-pine/45 dark:bg-[linear-gradient(to_bottom_right,rgba(52,211,153,0.35)_10%,#1a2d2d_70%)] border border-primary-mint/40 dark:border-primary-mint/30 shadow-[0_0_12px_rgba(74,255,159,0.15)] dark:shadow-[0_0_8px_rgba(52,211,153,0.15)]'
     }`}>
       {/* Header - Event Name */}
       <div className={`flex items-center gap-2 ${
-        isDeleted || isCreatorDeactivated || (hasEnded && !event.is_joined)
+        isDeleted || isCreatorDeactivated
           ? 'text-slate-500 dark:text-slate-400'
-          : 'text-primary-pine dark:text-primary-mint'
+          : hasEnded && !event.is_joined
+            ? 'text-emerald-600 dark:text-emerald-400'
+            : 'text-primary-pine dark:text-primary-mint'
       }`}>
         <div className={`p-2 rounded-lg backdrop-blur-sm shadow-sm ${
-          isDeleted || isCreatorDeactivated || (hasEnded && !event.is_joined)
+          isDeleted || isCreatorDeactivated
             ? 'bg-slate-300/60 dark:bg-slate-600/60'
-            : 'bg-white/30 dark:bg-primary-mint/20'
+            : hasEnded && !event.is_joined
+              ? 'bg-emerald-100/60 dark:bg-emerald-900/30'
+              : 'bg-white/30 dark:bg-primary-mint/20'
         }`}>
-          {isDeleted || isCreatorDeactivated || (hasEnded && !event.is_joined) ? (
+          {isDeleted || isCreatorDeactivated ? (
             <XCircle className="w-4 h-4" />
+          ) : hasEnded && !event.is_joined ? (
+            <CheckCircle2 className="w-4 h-4" />
           ) : (
             <Calendar className="w-4 h-4" />
           )}
@@ -122,8 +130,12 @@ export default function EventMessageDisplay({ event, onJoinEvent, onGoToChat }: 
 
       {/* Status Label for deleted/expired events */}
       {(isDeleted || isCreatorDeactivated || (hasEnded && !event.is_joined)) && (
-        <div className="text-sm font-outfit text-slate-500 dark:text-slate-400">
-          {isManuallyDeleted || isCreatorDeleted ? 'Event Deleted' : isCreatorDeactivated ? 'Creator Deactivated' : 'Event Expired'}
+        <div className={`text-sm font-outfit font-semibold ${
+          isManuallyDeleted || isCreatorDeleted || isCreatorDeactivated
+            ? 'text-slate-500 dark:text-slate-400'
+            : 'text-emerald-600 dark:text-emerald-400'
+        }`}>
+          {isManuallyDeleted || isCreatorDeleted ? 'Event Deleted' : isCreatorDeactivated ? 'Creator Deactivated' : '✓ Event Successfully Ended'}
         </div>
       )}
 
@@ -286,19 +298,19 @@ export default function EventMessageDisplay({ event, onJoinEvent, onGoToChat }: 
           Creator Deactivated
         </button>
       ) : isAutoExpired ? (
-        <button 
+        <button
           disabled
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-slate-400 dark:bg-slate-600 text-slate-200 dark:text-slate-400 rounded-button-rect font-outfit font-bold text-sm cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-button-rect font-outfit font-bold text-sm cursor-not-allowed"
         >
-          Event Expired
+          ✓ Event Successfully Ended
         </button>
       ) : hasEnded && !event.is_joined ? (
-        // Non-joined users see expired state immediately when event ends
-        <button 
+        // Non-joined users see ended state immediately when event ends
+        <button
           disabled
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-slate-400 dark:bg-slate-600 text-slate-200 dark:text-slate-400 rounded-button-rect font-outfit font-bold text-sm cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-button-rect font-outfit font-bold text-sm cursor-not-allowed"
         >
-          Event Expired
+          ✓ Event Successfully Ended
         </button>
       ) : isExpired && event.is_joined ? (
         // Joined users see countdown during 24-hour grace period

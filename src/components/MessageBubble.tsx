@@ -491,9 +491,12 @@ export default function MessageBubble({
 
   // Deleted event/listing card — show bubble-style placeholder matching deleted messages
   if (isMessageDeleted && (message.event_id || message.listing_id)) {
-    const label = message.event_id
-      ? `"${message.event?.name ?? 'Event'}" has been deleted`
-      : `"${(message.listing as Record<string, unknown> | undefined)?.title as string ?? 'Request'}" has been deleted`;
+    // Use content stored at delete-time if available (event/listing already removed from DB)
+    const storedContent = message.content && (message.content.includes(' event has been deleted') || message.content.includes(' request has been deleted'))
+      ? message.content : null;
+    const label = storedContent ?? (message.event_id
+      ? `"${message.event?.name ?? 'Event'}" event has been deleted`
+      : `"${(message.listing as Record<string, unknown> | undefined)?.title as string ?? 'Request'}" request has been deleted`);
     return (
       <div className={`flex gap-3 w-full ${isOwnMessage ? "flex-row-reverse" : ""}`}>
         {!isOwnMessage && (
@@ -524,7 +527,7 @@ export default function MessageBubble({
               ? "bg-slate-100 dark:bg-dark-elevated rounded-br-md"
               : "bg-slate-100 dark:bg-dark-elevated rounded-bl-md"
           }`}>
-            <span className="text-sm italic text-slate-400 dark:text-slate-500 font-outfit">{label}</span>
+            <span className="text-sm text-slate-400 dark:text-slate-500 font-outfit">{label}</span>
           </div>
           {!hideTimestamp && (
             <div className="text-xs mt-1 flex items-center gap-1 font-outfit">

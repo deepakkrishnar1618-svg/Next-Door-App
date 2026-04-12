@@ -25,6 +25,9 @@ import {
   ChevronRight,
   Images,
   Camera,
+  Link as LinkIcon,
+  ExternalLink,
+  File,
 } from "lucide-react";
 
 interface ProfileStats {
@@ -54,6 +57,23 @@ interface MediaItem {
   created_at: string;
 }
 
+interface DocItem {
+  id: number;
+  filename: string;
+  file_key: string;
+  file_size: number;
+  content_type: string;
+  created_at: string;
+  url: string;
+}
+
+interface LinkItem {
+  id: number;
+  url: string;
+  snippet: string;
+  created_at: string;
+}
+
 export default function ProfilePage() {
   const params = useParams<{ userId: string }>();
   const userId = params?.userId;
@@ -79,6 +99,13 @@ export default function ProfilePage() {
   // Media gallery state
   const [showAllMedia, setShowAllMedia] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
+  // Docs/Links tabs state
+  const [mediaTab, setMediaTab] = useState<'media' | 'docs' | 'links'>('media');
+  const [docs, setDocs] = useState<DocItem[]>([]);
+  const [links, setLinks] = useState<LinkItem[]>([]);
+  const [isLoadingDocs, setIsLoadingDocs] = useState(false);
+  const [isLoadingLinks, setIsLoadingLinks] = useState(false);
 
   // Avatar picker state
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -125,6 +152,40 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const fetchDocs = async () => {
+    if (!userId) return;
+    setIsLoadingDocs(true);
+    try {
+      const response = await fetch(`/api/users/${encodeURIComponent(userId)}/docs`, { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setDocs(Array.isArray(data) ? data : []);
+      }
+    } catch { /* ignore */ } finally {
+      setIsLoadingDocs(false);
+    }
+  };
+
+  const fetchLinks = async () => {
+    if (!userId) return;
+    setIsLoadingLinks(true);
+    try {
+      const response = await fetch(`/api/users/${encodeURIComponent(userId)}/links`, { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setLinks(Array.isArray(data) ? data : []);
+      }
+    } catch { /* ignore */ } finally {
+      setIsLoadingLinks(false);
+    }
+  };
+
+  const handleMediaTabChange = (tab: 'media' | 'docs' | 'links') => {
+    setMediaTab(tab);
+    if (tab === 'docs' && docs.length === 0 && !isLoadingDocs) fetchDocs();
+    if (tab === 'links' && links.length === 0 && !isLoadingLinks) fetchLinks();
   };
 
   const handleSaveBio = async () => {
@@ -506,50 +567,158 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Media Gallery */}
-        <div className="bg-white dark:bg-dark-surface rounded-2xl p-6 shadow-soft">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-slate-800 dark:text-white font-nura">
-              Shared Media
-            </h3>
-            {hasMoreMedia && (
+        {/* Media / Docs / Links tabs */}
+        <div className="bg-white dark:bg-dark-surface rounded-2xl shadow-soft overflow-hidden">
+          {/* Tab bar */}
+          <div className="flex border-b border-slate-200 dark:border-slate-700">
+            {(['media', 'docs', 'links'] as const).map((tab) => (
               <button
-                onClick={() => setShowAllMedia(!showAllMedia)}
-                className="text-sm text-primary-pine dark:text-primary-mint font-medium flex items-center gap-1 hover:underline"
+                key={tab}
+                onClick={() => handleMediaTabChange(tab)}
+                className={`flex-1 py-3 text-sm font-semibold font-outfit capitalize transition-colors ${
+                  mediaTab === tab
+                    ? 'text-primary-pine dark:text-primary-mint border-b-2 border-primary-pine dark:border-primary-mint'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                }`}
               >
-                <Images className="w-4 h-4" />
-                {showAllMedia ? 'Show less' : `View all (${media.length})`}
+                {tab === 'media' ? 'Media' : tab === 'docs' ? 'Docs' : 'Links'}
               </button>
+            ))}
+          </div>
+
+          <div className="p-6">
+            {/* MEDIA TAB */}
+            {mediaTab === 'media' && (
+              <>
+                {media.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-3 gap-2">
+                      {displayedMedia.map((item, index) => (
+                        <div
+                          key={item.id}
+                          onClick={() => setPreviewIndex(index)}
+                          className="aspect-square rounded-lg overflow-hidden bg-slate-100 dark:bg-dark-elevated cursor-pointer relative group"
+                        >
+                          <img
+                            src={item.url}
+                            alt={item.filename}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                          {!showAllMedia && index === 2 && hasMoreMedia && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                              <span className="text-white text-2xl font-bold">+{media.length - 3}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {hasMoreMedia && (
+                      <button
+                        onClick={() => setShowAllMedia(!showAllMedia)}
+                        className="mt-3 w-full text-sm text-primary-pine dark:text-primary-mint font-medium flex items-center justify-center gap-1 hover:underline"
+                      >
+                        <Images className="w-4 h-4" />
+                        {showAllMedia ? 'Show less' : `View all (${media.length})`}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                    <ImageIcon className="w-10 h-10 mb-2 opacity-50" />
+                    <p className="text-sm">No shared media yet</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* DOCS TAB */}
+            {mediaTab === 'docs' && (
+              <>
+                {isLoadingDocs ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="w-6 h-6 border-2 border-primary-mint border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : docs.length > 0 ? (
+                  <div className="space-y-2">
+                    {docs.map((doc) => {
+                      const isPdf = doc.content_type === 'application/pdf';
+                      const isWord = doc.content_type.includes('wordprocessingml') || doc.content_type === 'application/msword';
+                      const isExcel = doc.content_type.includes('spreadsheetml') || doc.content_type === 'application/vnd.ms-excel';
+                      const iconColor = isPdf ? 'text-red-500' : isWord ? 'text-blue-500' : isExcel ? 'text-green-600' : 'text-slate-500';
+                      const sizeKb = doc.file_size ? (doc.file_size / 1024) : null;
+                      const sizeStr = sizeKb ? (sizeKb >= 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${Math.round(sizeKb)} KB`) : '';
+                      return (
+                        <div key={doc.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-dark-elevated hover:bg-slate-100 dark:hover:bg-dark-elevated/80 transition-colors group">
+                          <File className={`w-8 h-8 flex-shrink-0 ${iconColor}`} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-slate-800 dark:text-white truncate font-outfit">{doc.filename}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-outfit">
+                              {sizeStr}{sizeStr && ' · '}{new Date(doc.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </p>
+                          </div>
+                          <a
+                            href={doc.url}
+                            download={doc.filename}
+                            className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex-shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Download className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                    <FileText className="w-10 h-10 mb-2 opacity-50" />
+                    <p className="text-sm">No documents shared yet</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* LINKS TAB */}
+            {mediaTab === 'links' && (
+              <>
+                {isLoadingLinks ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="w-6 h-6 border-2 border-primary-mint border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : links.length > 0 ? (
+                  <div className="space-y-2">
+                    {links.map((link, idx) => (
+                      <a
+                        key={`${link.id}-${idx}`}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-dark-elevated hover:bg-slate-100 dark:hover:bg-dark-elevated/80 transition-colors group"
+                      >
+                        <LinkIcon className="w-4 h-4 text-primary-pine dark:text-primary-mint flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-primary-pine dark:text-primary-mint truncate font-outfit group-hover:underline">
+                            {link.url.length > 60 ? link.url.slice(0, 60) + '…' : link.url}
+                          </p>
+                          {link.snippet && link.snippet !== link.url && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1 font-outfit">{link.snippet}</p>
+                          )}
+                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 font-outfit">
+                            {new Date(link.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                    <LinkIcon className="w-10 h-10 mb-2 opacity-50" />
+                    <p className="text-sm">No links shared yet</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
-          {media.length > 0 ? (
-            <div className="grid grid-cols-3 gap-2">
-              {displayedMedia.map((item, index) => (
-                <div
-                  key={item.id}
-                  onClick={() => setPreviewIndex(showAllMedia ? index : index)}
-                  className="aspect-square rounded-lg overflow-hidden bg-slate-100 dark:bg-dark-elevated cursor-pointer relative group"
-                >
-                  <img
-                    src={item.url}
-                    alt={item.filename}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                  {/* Show +N overlay on 3rd image if there are more */}
-                  {!showAllMedia && index === 2 && hasMoreMedia && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <span className="text-white text-2xl font-bold">+{media.length - 3}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-slate-400">
-              <ImageIcon className="w-10 h-10 mb-2 opacity-50" />
-              <p className="text-sm">No shared media yet</p>
-            </div>
-          )}
         </div>
       </div>
 

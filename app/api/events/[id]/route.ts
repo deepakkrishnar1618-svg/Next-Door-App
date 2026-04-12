@@ -87,8 +87,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   // 6. Delete notifications linked to the event's main chat message
   if (evt.message_id) {
     await db.from('notifications').delete().eq('message_id', evt.message_id);
-    // Soft-delete the original event card from main chat
-    await db.from('messages').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', evt.message_id);
+    // Soft-delete the original event card from main chat, storing name for display
+    await db.from('messages').update({ is_deleted: true, content: `"${evt.name}" event has been deleted`, updated_at: new Date().toISOString() }).eq('id', evt.message_id);
   }
 
   // 7. Archive to history

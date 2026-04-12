@@ -174,7 +174,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   // 7. Soft-delete main chat card and delete linked notifications
   if (listing.message_id) {
     await db.from('notifications').delete().eq('message_id', listing.message_id);
-    await db.from('messages').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', listing.message_id);
+    await db.from('messages').update({ is_deleted: true, content: `"${(listing as Record<string, unknown>).title}" request has been deleted`, updated_at: new Date().toISOString() }).eq('id', listing.message_id);
   }
 
   // 8. Archive to history, then delete

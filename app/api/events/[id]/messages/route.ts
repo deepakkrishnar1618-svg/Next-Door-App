@@ -118,8 +118,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { data: membership } = await db.from('event_members').select('id').eq('event_id', eventId).eq('user_id', userId).maybeSingle();
   if (!membership) return error('Not a member of this event', 403);
 
-  const { data: evt } = await db.from('events').select('id').eq('id', eventId).gt('end_datetime', new Date().toISOString()).maybeSingle();
-  if (!evt) return error('Event not found or has ended', 400);
+  const { data: evt } = await db.from('events').select('id, end_datetime').eq('id', eventId).maybeSingle();
+  if (!evt) return error('Event not found', 400);
+  // Block only when event has been fully deleted (soft-delete uses year 2000)
+  if ((evt as Record<string, unknown>).end_datetime && String((evt as Record<string, unknown>).end_datetime).startsWith('2000-')) return error('Event has been deleted', 400);
 
   const body = await request.json().catch(() => ({}));
   const { content, reply_to_message_id, attachments } = body;
