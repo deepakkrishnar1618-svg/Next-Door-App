@@ -220,8 +220,13 @@ export default function NotificationPanel({
     return content.replace(/@announcement\d*/gi, '').trim();
   };
 
+  const now = new Date();
+  const activeAdminReminders = adminReminders.filter(a =>
+    !a.expires_at || new Date(a.expires_at) > now
+  );
+
   const unreadMentionCount = notifications.filter(n => n.is_read === 0).length;
-  const totalNotificationCount = unreadMentionCount + reminders.length + adminReminders.length + (unreadMessageCount > 0 ? 1 : 0);
+  const totalNotificationCount = unreadMentionCount + reminders.length + activeAdminReminders.length + (unreadMessageCount > 0 ? 1 : 0);
 
   return (
     <div className="absolute right-4 top-16 w-96 max-w-[calc(100vw-2rem)] bg-white dark:bg-dark-surface rounded-card shadow-soft dark:shadow-soft-dark border border-slate-200 dark:border-slate-700 flex flex-col max-h-[600px] z-[70] overflow-hidden animate-scale-in">
@@ -282,22 +287,22 @@ export default function NotificationPanel({
             {/* Announcements Section */}
             <div className="border-b border-slate-200 dark:border-slate-700">
               <div className={`px-m py-3 border-b ${
-                adminReminders.length > 0 
-                  ? 'bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 border-amber-200/50 dark:border-amber-700/30' 
+                activeAdminReminders.length > 0
+                  ? 'bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 border-amber-200/50 dark:border-amber-700/30'
                   : 'bg-slate-50 dark:bg-dark-elevated border-slate-100 dark:border-slate-700'
               }`}>
                 <div className="flex items-center gap-2">
-                  <Bell className={`w-5 h-5 ${adminReminders.length > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`} />
+                  <Bell className={`w-5 h-5 ${activeAdminReminders.length > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`} />
                   <h3 className={`text-xs font-semibold uppercase tracking-wide font-outfit ${
-                    adminReminders.length > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-slate-600 dark:text-slate-400'
+                    activeAdminReminders.length > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-slate-600 dark:text-slate-400'
                   }`}>
-                    Announcements ({adminReminders.length})
+                    Announcements ({activeAdminReminders.length})
                   </h3>
                 </div>
               </div>
-              {adminReminders.length > 0 && (
+              {activeAdminReminders.length > 0 && (
                 <div className="divide-y divide-amber-100 dark:divide-amber-900/30">
-                  {adminReminders.map((reminder) => (
+                  {activeAdminReminders.map((reminder) => (
                     <div
                       key={reminder.id}
                       className="px-m py-m bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20"

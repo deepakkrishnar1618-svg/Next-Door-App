@@ -487,7 +487,9 @@ export default function MessageBubble({
   const isUserInactive = isUserDeleted || isUserDeactivated;
   const isWinnerAnnouncement = message.content.startsWith('🎉') && message.content.includes('has won the deal!');
   const isMessageDeleted = message.is_deleted === 1 || message.is_deleted === true;
-  const isReminder = message.is_active_announcement === 1 || message.is_active_announcement === true;
+  const isAnnouncementStillActive = !message.announcement_expires_at ||
+    new Date(message.announcement_expires_at as string).getTime() > Date.now();
+  const isReminder = (message.is_active_announcement === 1 || message.is_active_announcement === true) && isAnnouncementStillActive;
 
   // Deleted event/listing card — show bubble-style placeholder matching deleted messages
   if (isMessageDeleted && (message.event_id || message.listing_id)) {

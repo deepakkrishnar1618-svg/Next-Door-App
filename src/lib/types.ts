@@ -29,6 +29,7 @@ export interface Message {
   attachments?: Attachment[];
   reads?: MessageRead[];
   is_active_announcement?: boolean | number;
+  announcement_expires_at?: string | null;
 }
 
 export interface Reaction {

@@ -223,6 +223,15 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Override is_active_announcement=false for any expired announcements (cron handles DB update)
+  const nowTs = Date.now();
+  for (const m of messages) {
+    const expiresAt = m.announcement_expires_at as string | null;
+    if ((m.is_active_announcement === true || m.is_active_announcement === 1) && expiresAt && new Date(expiresAt).getTime() < nowTs) {
+      m.is_active_announcement = false;
+    }
+  }
+
   // Fetch system messages (app-wide, no group filter) and merge
   const { data: systemMsgs } = await db.from('system_messages')
     .select('*').order('created_at', { ascending: true });
