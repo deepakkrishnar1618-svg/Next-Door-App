@@ -188,6 +188,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Batch-fetch interested counts per listing
+    const interestedCountMap: Record<number, number> = {};
+    if (listingMsgIds.length > 0) {
+      const { data: allInterestRows } = await db.from('market_listing_interested').select('listing_id').in('listing_id', listingMsgIds);
+      for (const r of (allInterestRows || [])) {
+        const lid = (r as Record<string, unknown>).listing_id as number;
+        interestedCountMap[lid] = (interestedCountMap[lid] || 0) + 1;
+      }
+    }
+
     for (const l of (listings || [])) {
       const rec = l as Record<string, unknown>;
       const u = listUserMap[rec.creator_user_id as string] || null;
@@ -202,6 +212,7 @@ export async function GET(request: NextRequest) {
         images: (images || []).map((img: Record<string, unknown>) => img.image_url),
         is_creator: rec.creator_user_id === userId ? 1 : 0,
         is_interested: interestedSet.has(rec.id as number) ? 1 : 0,
+        interested_count: interestedCountMap[rec.id as number] || 0,
       };
     }
     for (const m of messages) {
@@ -247,10 +258,11 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const { content, group_id = 'main', reply_to_message_id, attachments, hashtag_id } = body;
 
-  if (!content || !content.trim()) return error('Content is required', 400);
-  if (content.length > 5000) return error('Message too long', 400);
+  const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
+  if ((!content || !content.trim()) && !hasAttachments) return error('Content or attachment is required', 400);
+  if (content && content.length > 5000) return error('Message too long', 400);
 
-  const sanitized = sanitizeHtml(content);
+  const sanitized = content ? sanitizeHtml(content) : '';
 
   // Detect admin commands
   const hasPinCommand = isAdmin && /#pin\b/i.test(sanitized);

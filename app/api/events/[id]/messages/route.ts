@@ -123,11 +123,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const body = await request.json().catch(() => ({}));
   const { content, reply_to_message_id, attachments } = body;
-  if (!content || typeof content !== 'string' || content.length > 5000) return error('Invalid content', 400);
+  const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
+  if ((!content || !content.trim()) && !hasAttachments) return error('Content or attachment is required', 400);
+  if (content && content.length > 5000) return error('Invalid content', 400);
 
   const { data: msg, error: insertErr } = await db.from('event_messages').insert({
     event_id: eventId, user_id: userId,
-    content: sanitizeHtml(content),
+    content: content ? sanitizeHtml(content) : '',
     reply_to_message_id: reply_to_message_id || null,
   }).select().single();
 

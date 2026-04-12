@@ -161,7 +161,7 @@ export default function NotificationPanel({
       router.push('/market?tab=my');
     } else if (reminder.type === 'dissolving_event') {
       // Navigate to events page with My Events tab active
-      router.push('/events?tab=my');
+      router.push('/events?tab=my-events');
     }
   };
 

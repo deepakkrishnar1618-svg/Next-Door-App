@@ -54,13 +54,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { data: reads } = await db.from('message_reads').select('user_id, read_at').eq('message_id', msgId);
   const readUserIds = Array.from(new Set((reads || []).map((r: Record<string, unknown>) => r.user_id as string)));
 
-  const { data: allUsers } = await db.from('users').select('id, name, avatar_url, room_number')
-    .eq('is_active', true).eq('is_deleted', false).neq('id', (msg as Record<string, unknown>).user_id);
+  const senderId = (msg as Record<string, unknown>).user_id as string;
+  const [{ data: allUsers }, { data: readUsers }] = await Promise.all([
+    db.from('users').select('id, name, avatar_url, room_number').neq('is_active', 0).neq('is_deleted', 1).neq('id', senderId),
+    readUserIds.length > 0 ? db.from('users').select('id, name, avatar_url, room_number').in('id', readUserIds) : Promise.resolve({ data: [] }),
+  ]);
 
   const userMap: Record<string, Record<string, unknown>> = {};
   for (const u of (allUsers || [])) {
     const rec = u as Record<string, unknown>;
     userMap[rec.id as string] = rec;
+  }
+  // Ensure read users are always in the map (even if deactivated/deleted)
+  for (const u of (readUsers || [])) {
+    const rec = u as Record<string, unknown>;
+    if (!userMap[rec.id as string]) userMap[rec.id as string] = rec;
   }
 
   const readBy = (reads || []).map((r: Record<string, unknown>) => {
@@ -72,5 +80,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .filter((u: Record<string, unknown>) => !readUserIds.includes(u.id as string))
     .map((u: Record<string, unknown>) => ({ user_id: u.id, name: u.name || null, avatar_url: u.avatar_url || null, room_number: u.room_number || null }));
 
-  return json({ message_id: msgId, sender_id: (msg as Record<string, unknown>).user_id, sent_at: (msg as Record<string, unknown>).created_at, read_by: readBy, delivered_to: deliveredTo });
+  return json({ message_id: msgId, sender_id: senderId, sent_at: (msg as Record<string, unknown>).created_at, read_by: readBy, delivered_to: deliveredTo });
 }

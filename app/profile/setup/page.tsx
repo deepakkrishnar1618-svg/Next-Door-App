@@ -100,7 +100,7 @@ export default function ProfileSetupPage() {
           <div className="flex justify-center mb-6">
             <img src="https://019b6b00-196b-77b5-ae46-bd09bff90213.mochausercontent.com/image.png_3083.png" alt="Next Door" className="w-20 h-20 rounded-2xl shadow-lg" />
           </div>
-          <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-primary-mint dark:to-primary-pine bg-clip-text text-transparent font-nura">Profile</h1>
+          <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-primary-mint dark:to-primary-pine bg-clip-text text-transparent font-nura">Edit Profile</h1>
           <p className="text-center text-gray-600 dark:text-slate-300 mb-8 font-outfit">Tell your neighbors about yourself</p>
 
           {/* Avatar picker modal */}

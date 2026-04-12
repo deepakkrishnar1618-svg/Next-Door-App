@@ -295,7 +295,7 @@ export default function ProfilePage() {
             </button>
             <div className="min-w-0">
               <h1 className="text-2xl font-extrabold text-white tracking-tight font-nura">Profile</h1>
-              <p className="text-xs text-white/90 font-outfit">Your Space</p>
+              <p className="text-xs text-white/90 font-outfit">{isOwnProfile ? 'Your Space' : 'Friendly Neighbour'}</p>
             </div>
           </div>
           

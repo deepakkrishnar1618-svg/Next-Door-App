@@ -24,6 +24,7 @@ const CHARACTER_AVATARS = [
  * This ensures the same user always gets the same character avatar
  */
 export function getCharacterAvatar(userId: string): string {
+  if (!userId) return CHARACTER_AVATARS[0];
   // Create a simple hash from the user ID
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {

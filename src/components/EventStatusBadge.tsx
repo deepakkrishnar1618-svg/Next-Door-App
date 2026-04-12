@@ -55,13 +55,13 @@ export default function EventStatusBadge({ startDatetime, endDatetime, className
       borderDark: "dark:border-emerald-600",
     },
     ended: {
-      label: "Ended · Dissolving Soon",
-      bgLight: "bg-slate-100",
-      bgDark: "dark:bg-slate-700/40",
-      textLight: "text-slate-600",
-      textDark: "dark:text-slate-300",
-      borderLight: "border-slate-300",
-      borderDark: "dark:border-slate-600",
+      label: "✓ Successfully Ended",
+      bgLight: "bg-emerald-50",
+      bgDark: "dark:bg-emerald-900/20",
+      textLight: "text-emerald-700",
+      textDark: "dark:text-emerald-400",
+      borderLight: "border-emerald-200",
+      borderDark: "dark:border-emerald-700",
     },
   };
 

@@ -265,8 +265,8 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
                 {event.name}
               </h3>
               {isExpired && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 font-outfit font-semibold mt-1">
-                  EVENT ENDED - Dissolving Soon
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-outfit font-semibold mt-1">
+                  ✓ Event Successfully Ended
                 </p>
               )}
             </div>
