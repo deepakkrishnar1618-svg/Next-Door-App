@@ -4,9 +4,8 @@ import { getServiceClient } from '@/src/lib/api-helpers';
 export async function GET(request: NextRequest) {
   // Vercel Cron authenticates via Authorization header with CRON_SECRET
   const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
