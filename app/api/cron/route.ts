@@ -1,136 +1,117 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getServiceClient } from '@/src/lib/api-helpers';
 
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+export async function POST(request: NextRequest) {
+  const secret = request.headers.get('x-webhook-secret');
+  if (!secret || secret !== process.env.CRON_WEBHOOK_SECRET) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const db = getServiceClient();
-  const now = new Date();
-  const nowIso = now.toISOString();
-  const dissolveThreshold = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-
-  // ── 1. Auto-delete dissolved events (ended > 24h ago) ────────────────────
-  const { data: dissolvedEvents } = await db
-    .from('events')
-    .select('id, name, description, start_datetime, end_datetime, location, max_members, image_url, creator_user_id, message_id')
-    .lt('end_datetime', dissolveThreshold);
-
-  let deletedEvents = 0;
-  for (const evt of dissolvedEvents ?? []) {
-    const rec = evt as Record<string, unknown>;
-    const eventId = rec.id as number;
-    try {
-      const { data: eventMsgs } = await db
-        .from('event_messages')
-        .select('id, attachments:event_message_attachments(file_key)')
-        .eq('event_id', eventId);
-      const msgIds = (eventMsgs || []).map((m: Record<string, unknown>) => m.id as number);
-
-      if (msgIds.length > 0) {
-        await db.from('event_message_reads').delete().in('event_message_id', msgIds);
-        await db.from('event_message_reactions').delete().in('event_message_id', msgIds);
-        await db.from('event_message_attachments').delete().in('event_message_id', msgIds);
-      }
-
-      const fileKeys: string[] = [];
-      for (const msg of eventMsgs ?? []) {
-        const atts = (msg as Record<string, unknown>).attachments as Array<{ file_key: string }> | null;
-        for (const att of atts ?? []) {
-          if (att.file_key) fileKeys.push(att.file_key);
-        }
-      }
-      if (fileKeys.length > 0) {
-        const byBucket: Record<string, string[]> = {};
-        for (const fk of fileKeys) {
-          const parts = fk.split('/');
-          const bucket = parts[0];
-          const path = parts.slice(1).join('/');
-          if (!byBucket[bucket]) byBucket[bucket] = [];
-          byBucket[bucket].push(path);
-        }
-        for (const [bucket, paths] of Object.entries(byBucket)) {
-          await db.storage.from(bucket).remove(paths);
-        }
-      }
-
-      await db.from('event_messages').delete().eq('event_id', eventId);
-      await db.from('event_members').delete().eq('event_id', eventId);
-      await db.from('typing_status').delete().eq('group_type', 'event').eq('group_id', String(eventId));
-
-      if (rec.message_id) {
-        await db.from('notifications').delete().eq('message_id', rec.message_id as number);
-        await db.from('messages').update({
-          is_deleted: true,
-          content: `"${rec.name}" event has been deleted`,
-          updated_at: nowIso,
-        }).eq('id', rec.message_id as number);
-      }
-
-      const { data: creatorUser } = await db.from('users').select('name, room_number').eq('id', rec.creator_user_id as string).maybeSingle();
-      const { count: memberCount } = await db.from('event_members').select('*', { count: 'exact', head: true }).eq('event_id', eventId);
-      const { data: existing } = await db.from('event_history').select('id').eq('event_id', eventId).maybeSingle();
-      if (!existing) {
-        await db.from('event_history').insert({
-          event_id: eventId,
-          name: rec.name, description: rec.description, location: rec.location,
-          start_datetime: rec.start_datetime, end_datetime: rec.end_datetime,
-          max_members: rec.max_members, image_url: rec.image_url,
-          creator_user_id: rec.creator_user_id,
-          creator_name: (creatorUser as Record<string, unknown>)?.name || null,
-          creator_room: (creatorUser as Record<string, unknown>)?.room_number || null,
-          total_attendees: memberCount || 0,
-          is_deleted: false,
-          ended_at: nowIso,
-        });
-      }
-
-      await db.from('events').delete().eq('id', eventId);
-      deletedEvents++;
-    } catch (err) {
-      console.error(`[Cron] Failed to delete dissolved event ${eventId}:`, err);
-    }
-  }
-
-  // ── 2. Expire stale announcements ─────────────────────────────────────────
-  await db
-    .from('messages')
-    .update({ is_active_announcement: false })
-    .eq('is_active_announcement', true)
-    .lt('announcement_expires_at', nowIso);
-
-  // ── 3. Daily email digest ─────────────────────────────────────────────────
   try {
+    const db = getServiceClient();
     const apiKey = process.env.RESEND_API_KEY;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextdoor.website';
 
-    const { data: enabledRow } = await db
+    // Fetch all relevant settings in one query
+    const { data: settingsRows } = await db
       .from('app_settings')
-      .select('setting_value')
-      .eq('setting_key', 'email_notifications_enabled')
-      .maybeSingle();
+      .select('setting_key, setting_value')
+      .in('setting_key', [
+        'email_notifications_enabled',
+        'email_send_days',
+        'email_send_time',
+        'email_last_sent',
+      ]);
 
-    if (enabledRow?.setting_value !== '1' || !apiKey) {
-      return NextResponse.json({
-        success: true,
-        deleted_events: deletedEvents,
-        sent: 0,
-        message: enabledRow?.setting_value !== '1' ? 'Email notifications disabled' : 'RESEND_API_KEY not configured',
-        ran_at: nowIso,
-      });
+    const settings: Record<string, string> = {};
+    for (const row of settingsRows ?? []) {
+      const r = row as { setting_key: string; setting_value: string };
+      settings[r.setting_key] = r.setting_value;
     }
 
+    if (settings.email_notifications_enabled !== '1') {
+      return Response.json({ success: true, sent: false, reason: 'Email notifications disabled' });
+    }
+
+    if (!apiKey) {
+      return Response.json({ success: false, sent: false, reason: 'RESEND_API_KEY not configured' }, { status: 500 });
+    }
+
+    // ── Smart schedule check ───────────────────────────────────────────────
+    const now = new Date();
+
+    // Get current day and time in Europe/London timezone
+    const londonParts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/London',
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(now);
+
+    const londonDay = (londonParts.find(p => p.type === 'weekday')?.value ?? '').toLowerCase();
+    const londonHour = londonParts.find(p => p.type === 'hour')?.value ?? '00';
+    const londonMinute = londonParts.find(p => p.type === 'minute')?.value ?? '00';
+    const londonTimeStr = `${londonHour}:${londonMinute}`;
+
+    // Today's date as YYYY-MM-DD in London time
+    const londonDateStr = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/London',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(now); // dd/mm/yyyy
+    const [dd, mm, yyyy] = londonDateStr.split('/');
+    const todayKey = `${yyyy}-${mm}-${dd}`;
+
+    // Parse configured send days (JSON array e.g. ["monday","wednesday"])
+    let sendDays: string[] = ['monday'];
+    try {
+      sendDays = JSON.parse(settings.email_send_days || '["monday"]');
+    } catch {
+      sendDays = ['monday'];
+    }
+
+    const sendTime = settings.email_send_time || '09:00'; // "HH:MM"
+    const lastSent = settings.email_last_sent || '';
+
+    // Check if current day is a send day
+    const isDaySend = sendDays.includes(londonDay);
+
+    // Check if we're within a 15-minute window of the configured send time
+    const [configHour, configMin] = sendTime.split(':').map(Number);
+    const configTotalMins = configHour * 60 + configMin;
+    const currentTotalMins = parseInt(londonHour) * 60 + parseInt(londonMinute);
+    const isTimeWindow = currentTotalMins >= configTotalMins && currentTotalMins < configTotalMins + 15;
+
+    // Prevent double-send on same day
+    const alreadySentToday = lastSent === todayKey;
+
+    if (!isDaySend) {
+      return Response.json({ success: true, sent: false, reason: `Not a send day (today: ${londonDay}, send days: ${sendDays.join(', ')})` });
+    }
+    if (!isTimeWindow) {
+      return Response.json({ success: true, sent: false, reason: `Outside send window (now: ${londonTimeStr}, configured: ${sendTime})` });
+    }
+    if (alreadySentToday) {
+      return Response.json({ success: true, sent: false, reason: `Already sent today (${todayKey})` });
+    }
+
+    // ── Fetch recipients ───────────────────────────────────────────────────
     const { data: recipientRows } = await db.from('email_notification_users').select('user_id');
-    const recipientIds = (recipientRows || []).map((r: { user_id: string }) => r.user_id);
+    const recipientIds = (recipientRows ?? []).map((r: { user_id: string }) => r.user_id);
 
     if (recipientIds.length === 0) {
-      return NextResponse.json({ success: true, deleted_events: deletedEvents, sent: 0, message: 'No recipients configured', ran_at: nowIso });
+      return Response.json({ success: true, sent: false, reason: 'No recipients configured' });
     }
 
-    const { data: recipients } = await db.from('users').select('id, email, name').in('id', recipientIds).not('email', 'is', null);
+    const { data: recipients } = await db
+      .from('users')
+      .select('id, email, name')
+      .in('id', recipientIds)
+      .not('email', 'is', null);
 
+    // ── Gather activity summary ────────────────────────────────────────────
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
     const [
       { count: newMessages },
@@ -138,14 +119,15 @@ export async function GET(request: NextRequest) {
       { count: activeListings },
     ] = await Promise.all([
       db.from('messages').select('*', { count: 'exact', head: true }).eq('group_id', 'main').eq('is_deleted', false).gte('created_at', yesterday),
-      db.from('events').select('*', { count: 'exact', head: true }).gt('end_datetime', nowIso),
+      db.from('events').select('*', { count: 'exact', head: true }).gt('end_datetime', now.toISOString()),
       db.from('market_listings').select('*', { count: 'exact', head: true }).eq('status', 'open'),
     ]);
 
+    // ── Send emails ────────────────────────────────────────────────────────
     let sent = 0;
     let failed = 0;
 
-    for (const recipient of (recipients || [])) {
+    for (const recipient of recipients ?? []) {
       if (!recipient.email?.includes('@')) { failed++; continue; }
 
       const htmlBody = `
@@ -175,11 +157,11 @@ export async function GET(request: NextRequest) {
           <div class="container">
             <div class="header">
               <h1>🏠 Next Door</h1>
-              <p>Your daily neighborhood digest</p>
+              <p>Your neighborhood digest</p>
             </div>
             <div class="body">
               <p class="greeting">Hi ${recipient.name},</p>
-              <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">Here's what happened in your building today:</p>
+              <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">Here's what's been happening in your building:</p>
               <div class="stats">
                 <div class="stat">
                   <span class="stat-value">${newMessages ?? 0}</span>
@@ -197,7 +179,7 @@ export async function GET(request: NextRequest) {
               <a href="${appUrl}/chat" class="cta">Open Next Door →</a>
             </div>
             <div class="footer">
-              You're receiving this because you're subscribed to daily digests.<br>
+              You're receiving this because you're subscribed to digests.<br>
               Contact your building admin to unsubscribe.
             </div>
           </div>
@@ -211,7 +193,7 @@ export async function GET(request: NextRequest) {
         body: JSON.stringify({
           from: 'Next Door <noreply@nextdoor.website>',
           to: recipient.email,
-          subject: `🏠 Next Door Daily Digest — ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`,
+          subject: `🏠 Next Door — ${now.toLocaleDateString('en-GB', { weekday: 'long', month: 'short', day: 'numeric', timeZone: 'Europe/London' })}`,
           html: htmlBody,
         }),
       });
@@ -220,11 +202,15 @@ export async function GET(request: NextRequest) {
       await new Promise(r => setTimeout(r, 100));
     }
 
-    return NextResponse.json({ success: true, deleted_events: deletedEvents, sent, failed, ran_at: nowIso });
+    // Mark as sent today
+    await db.from('app_settings').upsert({ setting_key: 'email_last_sent', setting_value: todayKey }, { onConflict: 'setting_key' });
+
+    return Response.json({ success: true, sent: true, emails_sent: sent, emails_failed: failed, ran_at: now.toISOString() });
   } catch (e) {
     console.error('[Cron] Email digest error:', e);
-    return NextResponse.json({ success: false, deleted_events: deletedEvents, message: String(e), ran_at: nowIso }, { status: 500 });
+    return Response.json({ success: false, sent: false, reason: String(e) }, { status: 500 });
   }
 }
 
-export { GET as POST };
+// Support GET for manual testing
+export { POST as GET };

@@ -31,6 +31,13 @@ export default function AdminSettingsModal({ onClose }: AdminSettingsModalProps)
   const [emailTime, setEmailTime] = useState("18:00");
   const [isLoadingEmailSettings, setIsLoadingEmailSettings] = useState(true);
   const [isSavingEmailSettings, setIsSavingEmailSettings] = useState(false);
+
+  // Schedule settings
+  const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'] as const;
+  const DAY_LABELS: Record<string, string> = { monday:'Mon', tuesday:'Tue', wednesday:'Wed', thursday:'Thu', friday:'Fri', saturday:'Sat', sunday:'Sun' };
+  const [sendDays, setSendDays] = useState<string[]>(['monday']);
+  const [sendTime, setSendTime] = useState('09:00');
+  const [isSavingSchedule, setIsSavingSchedule] = useState(false);
   
   // User selection for email notifications
   const [allUsers, setAllUsers] = useState<UserForSelection[]>([]);
@@ -49,13 +56,19 @@ export default function AdminSettingsModal({ onClose }: AdminSettingsModalProps)
 
   const fetchEmailSettings = async () => {
     try {
-      const response = await fetch("/api/admin/email-settings", {
-        credentials: 'include',
-      });
-      if (response.ok) {
-        const data = await response.json();
+      const [emailRes, scheduleRes] = await Promise.all([
+        fetch("/api/admin/email-settings", { credentials: 'include' }),
+        fetch("/api/admin/settings", { credentials: 'include' }),
+      ]);
+      if (emailRes.ok) {
+        const data = await emailRes.json();
         setEmailEnabled(data.enabled);
         setEmailTime(data.time);
+      }
+      if (scheduleRes.ok) {
+        const data = await scheduleRes.json();
+        if (Array.isArray(data.email_send_days)) setSendDays(data.email_send_days);
+        if (data.email_send_time) setSendTime(data.email_send_time);
       }
     } catch (err) {
       console.error("Failed to fetch email settings:", err);
@@ -205,6 +218,32 @@ export default function AdminSettingsModal({ onClose }: AdminSettingsModalProps)
       setEmailEnabled(!newValue); // Revert on error
     } finally {
       setIsSavingEmailSettings(false);
+    }
+  };
+
+  const handleToggleDay = (day: string) => {
+    setSendDays(prev =>
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    );
+  };
+
+  const handleSaveSchedule = async () => {
+    setIsSavingSchedule(true);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: 'include',
+        body: JSON.stringify({ email_send_days: sendDays, email_send_time: sendTime }),
+      });
+      if (!response.ok) throw new Error("Failed to save schedule");
+      setSuccess("Schedule saved");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError("Failed to save schedule. Please try again.");
+    } finally {
+      setIsSavingSchedule(false);
     }
   };
 
@@ -1177,27 +1216,69 @@ export default function AdminSettingsModal({ onClose }: AdminSettingsModalProps)
                   </button>
                 </div>
 
-                {/* Edit Schedule Time - Links to Cron Job */}
-                <a
-                  href="https://vercel.com/dashboard"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center gap-3 p-4 bg-light-surface dark:bg-dark-surface rounded-button-rect hover:bg-primary-mint/10 dark:hover:bg-primary-mint/10 transition-all group ${!emailEnabled ? 'opacity-50 pointer-events-none' : ''}`}
-                >
-                  <div className="p-2 rounded-full bg-primary-mint/20 text-primary-pine dark:text-primary-mint">
-                    <Clock className="w-5 h-5" />
+                {/* Schedule Configuration */}
+                <div className={`p-4 bg-light-surface dark:bg-dark-surface rounded-button-rect space-y-4 ${!emailEnabled ? 'opacity-50' : ''}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Clock className="w-4 h-4 text-primary-pine dark:text-primary-mint" />
+                    <p className="font-medium text-slate-800 dark:text-white font-outfit text-sm">Send Schedule</p>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-800 dark:text-white font-outfit">Vercel Dashboard</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-outfit">
-                      Email digest runs daily at 8am UTC via Vercel Cron
+
+                  {/* Summary */}
+                  {sendDays.length > 0 && (
+                    <p className="text-xs text-primary-pine dark:text-primary-mint font-outfit">
+                      Currently sending on: {sendDays.map(d => DAY_LABELS[d] || d).join(', ')} at {sendTime} GMT/BST
+                    </p>
+                  )}
+
+                  {/* Day pills */}
+                  <div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-outfit mb-2">Send days</p>
+                    <div className="flex flex-wrap gap-2">
+                      {DAYS.map(day => (
+                        <button
+                          key={day}
+                          onClick={() => handleToggleDay(day)}
+                          disabled={!emailEnabled}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium font-outfit transition-all ${
+                            sendDays.includes(day)
+                              ? 'bg-primary-mint text-primary-pine'
+                              : 'bg-white dark:bg-dark-elevated text-slate-500 dark:text-slate-400 hover:bg-primary-mint/20'
+                          } disabled:cursor-not-allowed`}
+                        >
+                          {DAY_LABELS[day]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Time input */}
+                  <div>
+                    <label className="block text-xs text-slate-500 dark:text-slate-400 font-outfit mb-1">
+                      Send time (GMT/BST)
+                    </label>
+                    <input
+                      type="time"
+                      value={sendTime}
+                      onChange={e => setSendTime(e.target.value)}
+                      disabled={!emailEnabled}
+                      className="px-3 py-2 rounded-button-rect bg-white dark:bg-dark-elevated border-2 border-transparent focus:border-primary-mint outline-none transition-all font-outfit text-slate-800 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <p className="text-xs text-slate-400 dark:text-slate-500 font-outfit mt-1">
+                      UK timezone (GMT/BST) — auto-adjusts for daylight saving
                     </p>
                   </div>
-                  <ExternalLink className="w-5 h-5 text-slate-400 group-hover:text-primary-mint transition-colors" />
-                </a>
+
+                  <button
+                    onClick={handleSaveSchedule}
+                    disabled={!emailEnabled || isSavingSchedule || sendDays.length === 0}
+                    className="w-full px-m py-2 bg-gradient-primary hover:scale-105 disabled:scale-100 disabled:opacity-50 text-white rounded-button-rect font-medium transition-all shadow-soft font-outfit text-sm"
+                  >
+                    {isSavingSchedule ? 'Saving...' : 'Save Schedule'}
+                  </button>
+                </div>
 
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-outfit italic">
-                  Note: Emails require a valid RESEND_API_KEY to be configured in app secrets.
+                  Note: Emails require a valid RESEND_API_KEY and cron-job.org configured to call /api/cron every 15 minutes.
                 </p>
 
                 {/* User Selection */}
