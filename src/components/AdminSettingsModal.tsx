@@ -1179,7 +1179,7 @@ export default function AdminSettingsModal({ onClose }: AdminSettingsModalProps)
 
                 {/* Edit Schedule Time - Links to Cron Job */}
                 <a
-                  href="https://cron-job.org"
+                  href="https://vercel.com/dashboard"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`flex items-center gap-3 p-4 bg-light-surface dark:bg-dark-surface rounded-button-rect hover:bg-primary-mint/10 dark:hover:bg-primary-mint/10 transition-all group ${!emailEnabled ? 'opacity-50 pointer-events-none' : ''}`}
@@ -1188,9 +1188,9 @@ export default function AdminSettingsModal({ onClose }: AdminSettingsModalProps)
                     <Clock className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-slate-800 dark:text-white font-outfit">Cron-job.org</p>
+                    <p className="font-medium text-slate-800 dark:text-white font-outfit">Vercel Dashboard</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-outfit">
-                      Manage email schedule timing
+                      Email digest runs daily at 8am UTC via Vercel Cron
                     </p>
                   </div>
                   <ExternalLink className="w-5 h-5 text-slate-400 group-hover:text-primary-mint transition-colors" />
