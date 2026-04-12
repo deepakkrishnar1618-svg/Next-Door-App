@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="50" fill="#2d5a27"/>
+  <!-- Celtic knotwork crown/torque hint -->
+  <path d="M30,38 Q50,28 70,38" stroke="#c8a415" stroke-width="3" fill="none"/>
+  <circle cx="30" cy="38" r="3" fill="#c8a415"/>
+  <circle cx="70" cy="38" r="3" fill="#c8a415"/>
+  <!-- Wolf face -->
+  <ellipse cx="50" cy="60" rx="22" ry="20" fill="#7a7a8a"/>
+  <!-- Pointed ears -->
+  <polygon points="32,48 26,28 42,44" fill="#7a7a8a"/>
+  <polygon points="68,48 74,28 58,44" fill="#7a7a8a"/>
+  <polygon points="33,47 29,33 41,44" fill="#aaa0b0"/>
+  <polygon points="67,47 71,33 59,44" fill="#aaa0b0"/>
+  <!-- White muzzle -->
+  <ellipse cx="50" cy="65" rx="13" ry="10" fill="#d8d8e8"/>
+  <!-- Eyes -->
+  <circle cx="41" cy="56" r="4.5" fill="#e8d040"/>
+  <circle cx="59" cy="56" r="4.5" fill="#e8d040"/>
+  <ellipse cx="41" cy="56" rx="2" ry="3" fill="#1a1a1a"/>
+  <ellipse cx="59" cy="56" rx="2" ry="3" fill="#1a1a1a"/>
+  <circle cx="40" cy="55" r="1" fill="white"/>
+  <circle cx="58" cy="55" r="1" fill="white"/>
+  <!-- Nose -->
+  <ellipse cx="50" cy="63" rx="5" ry="3" fill="#3a3a4a"/>
+  <!-- Mouth -->
+  <path d="M45 66 Q50 71 55 66" stroke="#4a4a5a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Whiskers -->
+  <line x1="28" y1="64" x2="45" y2="65" stroke="#9a9aaa" stroke-width="0.8"/>
+  <line x1="28" y1="67" x2="45" y2="67" stroke="#9a9aaa" stroke-width="0.8"/>
+  <line x1="72" y1="64" x2="55" y2="65" stroke="#9a9aaa" stroke-width="0.8"/>
+  <line x1="72" y1="67" x2="55" y2="67" stroke="#9a9aaa" stroke-width="0.8"/>
+  <!-- Celtic tattoo marks on face -->
+  <path d="M35,58 Q38,55 40,58" stroke="#c8a415" stroke-width="1" fill="none"/>
+  <path d="M60,58 Q62,55 65,58" stroke="#c8a415" stroke-width="1" fill="none"/>
+</svg>

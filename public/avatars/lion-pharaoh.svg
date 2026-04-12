@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="50" fill="#c8a415"/>
+  <!-- Pharaoh nemes headdress (striped cloth) -->
+  <path d="M26,42 Q26,24 50,24 Q74,24 74,42 L70,55 L30,55 Z" fill="#0066cc"/>
+  <!-- Nemes stripes -->
+  <line x1="32" y1="30" x2="30" y2="55" stroke="#c8a415" stroke-width="2" opacity="0.6"/>
+  <line x1="40" y1="26" x2="35" y2="55" stroke="#c8a415" stroke-width="2" opacity="0.6"/>
+  <line x1="60" y1="26" x2="65" y2="55" stroke="#c8a415" stroke-width="2" opacity="0.6"/>
+  <line x1="68" y1="30" x2="70" y2="55" stroke="#c8a415" stroke-width="2" opacity="0.6"/>
+  <!-- Uraeus (cobra at front) -->
+  <path d="M50,24 Q54,18 52,14 Q50,10 48,14 Q46,18 50,24" fill="#c8a415"/>
+  <ellipse cx="50" cy="13" rx="3" ry="4" fill="#c8a415"/>
+  <!-- Lion face -->
+  <ellipse cx="50" cy="62" rx="20" ry="18" fill="#d4a035"/>
+  <!-- Mane suggestion -->
+  <ellipse cx="50" cy="64" rx="24" ry="22" fill="#8b5e1a" opacity="0.4"/>
+  <!-- Eyes -->
+  <circle cx="42" cy="59" r="4" fill="#c8a415"/>
+  <circle cx="58" cy="59" r="4" fill="#c8a415"/>
+  <ellipse cx="42" cy="59" rx="2" ry="2.5" fill="#3d2b1f"/>
+  <ellipse cx="58" cy="59" rx="2" ry="2.5" fill="#3d2b1f"/>
+  <circle cx="41" cy="58" r="1" fill="white"/>
+  <circle cx="57" cy="58" r="1" fill="white"/>
+  <!-- Nose -->
+  <ellipse cx="50" cy="66" rx="5" ry="3" fill="#8b5e1a"/>
+  <!-- Mouth -->
+  <path d="M45 69 Q50 74 55 69" stroke="#6b4a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Pharaoh beard -->
+  <rect x="45" y="76" width="10" height="8" rx="5" fill="#c8a415"/>
+  <line x1="50" y1="76" x2="50" y2="84" stroke="#0066cc" stroke-width="1.5"/>
+</svg>

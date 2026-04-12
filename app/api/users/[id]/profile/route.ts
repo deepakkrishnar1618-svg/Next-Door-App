@@ -76,8 +76,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   const body = await request.json().catch(() => ({}));
   const bio = body.bio !== undefined ? sanitizeHtml((body.bio || '').trim()).slice(0, 500) : undefined;
+  const avatarUrl = body.avatar_url !== undefined ? (body.avatar_url || null) : undefined;
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (bio !== undefined) updates.bio = bio ?? null;
+  if (avatarUrl !== undefined) updates.avatar_url = avatarUrl;
 
   const db = getServiceClient();
-  await db.from('users').update({ bio: bio ?? null, updated_at: new Date().toISOString() }).eq('id', targetId);
+  await db.from('users').update(updates).eq('id', targetId);
   return json({ success: true });
 }

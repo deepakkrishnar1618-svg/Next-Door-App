@@ -3,16 +3,16 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/src/lib/auth-hook";
 import { useTheme } from "@/src/context/ThemeContext";
-import { getUserAvatar } from "@/src/utils/avatars";
-import { 
-  ArrowLeft, 
-  Edit3, 
-  Check, 
-  X, 
-  Sun, 
-  Moon, 
-  MessageSquare, 
-  Calendar, 
+import { getUserAvatar, PRESET_AVATARS } from "@/src/utils/avatars";
+import {
+  ArrowLeft,
+  Edit3,
+  Check,
+  X,
+  Sun,
+  Moon,
+  MessageSquare,
+  Calendar,
   Handshake,
   HandHeart,
   Image as ImageIcon,
@@ -23,7 +23,8 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
-  Images
+  Images,
+  Camera,
 } from "lucide-react";
 
 interface ProfileStats {
@@ -78,6 +79,11 @@ export default function ProfilePage() {
   // Media gallery state
   const [showAllMedia, setShowAllMedia] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
+  // Avatar picker state
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarFileInputRef = useRef<HTMLInputElement>(null);
   
   const isOwnProfile = currentUser?.id === userId;
   const BIO_MAX_LENGTH = 500;
@@ -145,6 +151,52 @@ export default function ProfilePage() {
     setIsEditingBio(false);
   };
 
+  const handleAvatarPresetSelect = async (path: string) => {
+    setShowAvatarPicker(false);
+    setIsUploadingAvatar(true);
+    try {
+      const avatarUrl = `${window.location.origin}${path}`;
+      const response = await fetch(`/api/users/${encodeURIComponent(userId!)}/profile`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar_url: avatarUrl }),
+      });
+      if (!response.ok) throw new Error("Failed to update avatar");
+      setProfileUser(prev => prev ? { ...prev, avatar_url: avatarUrl } : null);
+    } catch (err) {
+      console.error("Failed to update avatar:", err);
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setShowAvatarPicker(false);
+    setIsUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "profile");
+      const uploadResponse = await fetch("/api/files", { method: "POST", body: formData, credentials: 'include' });
+      if (!uploadResponse.ok) throw new Error("Failed to upload avatar");
+      const uploadData = await uploadResponse.json();
+      const response = await fetch(`/api/users/${encodeURIComponent(userId!)}/profile`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar_url: uploadData.url }),
+      });
+      if (!response.ok) throw new Error("Failed to update avatar");
+      setProfileUser(prev => prev ? { ...prev, avatar_url: uploadData.url } : null);
+    } catch (err) {
+      console.error("Failed to update avatar:", err);
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarFileInputRef.current) avatarFileInputRef.current.value = '';
+    }
+  };
+
   const handleDownload = async (url: string, filename: string) => {
     try {
       const response = await fetch(url);
@@ -191,6 +243,45 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-light-bg dark:bg-dark-ocean">
+      {/* Avatar picker modal */}
+      {showAvatarPicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white dark:bg-dark-surface rounded-2xl shadow-2xl p-6 max-w-sm w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold font-outfit text-slate-800 dark:text-white">Choose Avatar</h3>
+              <button onClick={() => setShowAvatarPicker(false)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-dark-elevated transition-colors">
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+            <div className="grid grid-cols-4 gap-3 mb-4">
+              {PRESET_AVATARS.map((av) => (
+                <button
+                  key={av.id}
+                  type="button"
+                  onClick={() => handleAvatarPresetSelect(av.path)}
+                  className={`relative rounded-full overflow-hidden border-2 transition-all aspect-square ${
+                    profileUser.avatar_url?.includes(av.id)
+                      ? 'border-emerald-500 ring-2 ring-emerald-300'
+                      : 'border-slate-200 dark:border-slate-600 hover:border-emerald-400'
+                  }`}
+                  title={av.label}
+                >
+                  <img src={av.path} alt={av.label} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => { setShowAvatarPicker(false); avatarFileInputRef.current?.click(); }}
+              className="w-full flex items-center justify-center gap-2 py-2 px-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl text-sm text-slate-600 dark:text-slate-300 hover:border-emerald-400 hover:text-emerald-600 transition-colors font-outfit"
+            >
+              <Camera className="w-4 h-4" />
+              Upload custom photo
+            </button>
+          </div>
+        </div>
+      )}
+      <input type="file" ref={avatarFileInputRef} onChange={handleAvatarFileSelect} accept="image/*" className="hidden" />
       {/* Header */}
       <div className="sticky top-0 z-10 bg-gradient-primary px-m py-3">
         <div className="flex items-center justify-between">
@@ -278,11 +369,26 @@ export default function ProfilePage() {
         {/* Profile Card */}
         <div className="bg-white dark:bg-dark-surface rounded-2xl p-6 shadow-soft">
           <div className="flex items-start gap-4">
-            <img
-              src={avatarUrl}
-              alt={profileUser.name || "User"}
-              className="w-20 h-20 rounded-full object-cover border-2 border-primary-mint/30"
-            />
+            <div className="relative flex-shrink-0">
+              <img
+                src={avatarUrl}
+                alt={profileUser.name || "User"}
+                className={`w-20 h-20 rounded-full object-cover border-2 border-primary-mint/30 ${isOwnProfile ? 'cursor-pointer' : ''}`}
+                onClick={() => isOwnProfile && setShowAvatarPicker(true)}
+              />
+              {isOwnProfile && (
+                <button
+                  onClick={() => setShowAvatarPicker(true)}
+                  className="absolute bottom-0 right-0 w-7 h-7 bg-emerald-500 hover:bg-emerald-600 rounded-full flex items-center justify-center shadow-md transition-colors"
+                  title="Change avatar"
+                >
+                  {isUploadingAvatar
+                    ? <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                    : <Camera className="w-3.5 h-3.5 text-white" />
+                  }
+                </button>
+              )}
+            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xl font-bold text-slate-800 dark:text-white font-nura truncate">

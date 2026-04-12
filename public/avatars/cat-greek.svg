@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="50" fill="#1a6b8a"/>
+  <!-- Greek laurel wreath -->
+  <ellipse cx="50" cy="33" rx="24" ry="6" fill="none" stroke="#c8a415" stroke-width="3"/>
+  <circle cx="30" cy="30" r="3" fill="#4a7c3f"/>
+  <circle cx="35" cy="27" r="3" fill="#4a7c3f"/>
+  <circle cx="40" cy="26" r="3" fill="#4a7c3f"/>
+  <circle cx="50" cy="25" r="3" fill="#4a7c3f"/>
+  <circle cx="60" cy="26" r="3" fill="#4a7c3f"/>
+  <circle cx="65" cy="27" r="3" fill="#4a7c3f"/>
+  <circle cx="70" cy="30" r="3" fill="#4a7c3f"/>
+  <!-- Cat face -->
+  <ellipse cx="50" cy="60" rx="22" ry="20" fill="#e8d5b7"/>
+  <!-- Pointed ears -->
+  <polygon points="30,46 26,30 40,42" fill="#e8d5b7"/>
+  <polygon points="70,46 74,30 60,42" fill="#e8d5b7"/>
+  <polygon points="31,45 28,35 39,43" fill="#f0a0a0"/>
+  <polygon points="69,45 72,35 61,43" fill="#f0a0a0"/>
+  <!-- Eyes -->
+  <ellipse cx="42" cy="57" rx="5" ry="4" fill="#5a9e6f"/>
+  <ellipse cx="58" cy="57" rx="5" ry="4" fill="#5a9e6f"/>
+  <ellipse cx="42" cy="57" rx="2" ry="3.5" fill="#1a1a1a"/>
+  <ellipse cx="58" cy="57" rx="2" ry="3.5" fill="#1a1a1a"/>
+  <circle cx="41" cy="56" r="1" fill="white"/>
+  <circle cx="57" cy="56" r="1" fill="white"/>
+  <!-- Nose -->
+  <polygon points="50,63 47,67 53,67" fill="#e87a8c"/>
+  <!-- Mouth -->
+  <path d="M47 67 Q50 70 50 68" stroke="#8b4a5c" stroke-width="1.5" fill="none"/>
+  <path d="M53 67 Q50 70 50 68" stroke="#8b4a5c" stroke-width="1.5" fill="none"/>
+  <!-- Whiskers -->
+  <line x1="28" y1="63" x2="45" y2="65" stroke="#9a8a7a" stroke-width="1"/>
+  <line x1="28" y1="67" x2="45" y2="67" stroke="#9a8a7a" stroke-width="1"/>
+  <line x1="72" y1="63" x2="55" y2="65" stroke="#9a8a7a" stroke-width="1"/>
+  <line x1="72" y1="67" x2="55" y2="67" stroke="#9a8a7a" stroke-width="1"/>
+  <!-- Greek robe collar -->
+  <path d="M30 75 Q50 82 70 75" stroke="white" stroke-width="3" fill="none"/>
+</svg>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="50" fill="#e67e22"/>
+  <!-- Monk robe hood -->
+  <ellipse cx="50" cy="35" rx="26" ry="18" fill="#d35400"/>
+  <!-- Panda face -->
+  <ellipse cx="50" cy="58" rx="22" ry="20" fill="white"/>
+  <!-- Black eye patches -->
+  <ellipse cx="40" cy="55" rx="8" ry="7" fill="#1a1a1a"/>
+  <ellipse cx="60" cy="55" rx="8" ry="7" fill="#1a1a1a"/>
+  <!-- Panda ears -->
+  <circle cx="30" cy="44" r="9" fill="#1a1a1a"/>
+  <circle cx="70" cy="44" r="9" fill="#1a1a1a"/>
+  <!-- Eyes (white circles on black patches) -->
+  <circle cx="40" cy="55" r="4.5" fill="white"/>
+  <circle cx="60" cy="55" r="4.5" fill="white"/>
+  <circle cx="41" cy="56" r="2.5" fill="#1a1a1a"/>
+  <circle cx="61" cy="56" r="2.5" fill="#1a1a1a"/>
+  <circle cx="42" cy="55" r="1" fill="white"/>
+  <circle cx="62" cy="55" r="1" fill="white"/>
+  <!-- Nose -->
+  <ellipse cx="50" cy="65" rx="4" ry="2.5" fill="#1a1a1a"/>
+  <!-- Mouth -->
+  <path d="M46 67 Q50 72 54 67" stroke="#1a1a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Monk bead necklace -->
+  <path d="M32 76 Q50 84 68 76" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-dasharray="4,3" stroke-linecap="round"/>
+</svg>

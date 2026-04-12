@@ -1,3 +1,15 @@
+// Preset animal warrior avatars (local SVGs)
+export const PRESET_AVATARS = [
+  { id: 'dog-viking',     label: 'Dog Viking',     path: '/avatars/dog-viking.svg' },
+  { id: 'cat-greek',      label: 'Cat Greek',      path: '/avatars/cat-greek.svg' },
+  { id: 'rabbit-samurai', label: 'Rabbit Samurai', path: '/avatars/rabbit-samurai.svg' },
+  { id: 'fox-ninja',      label: 'Fox Ninja',      path: '/avatars/fox-ninja.svg' },
+  { id: 'bear-knight',    label: 'Bear Knight',    path: '/avatars/bear-knight.svg' },
+  { id: 'panda-monk',     label: 'Panda Monk',     path: '/avatars/panda-monk.svg' },
+  { id: 'lion-pharaoh',   label: 'Lion Pharaoh',   path: '/avatars/lion-pharaoh.svg' },
+  { id: 'wolf-celt',      label: 'Wolf Celt',      path: '/avatars/wolf-celt.svg' },
+];
+
 // Character avatar URLs
 const CHARACTER_AVATARS = [
   "https://019b6b00-196b-77b5-ae46-bd09bff90213.mochausercontent.com/character-avatar-1.png",
