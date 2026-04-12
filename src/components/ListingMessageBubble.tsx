@@ -131,21 +131,23 @@ interface ListingMessageBubbleProps {
   onRetry?: () => void;
   onDelete?: () => void;
   onMessageInfo?: (messageId: number) => void;
+  hideTimestamp?: boolean;
 }
 
-export default function ListingMessageBubble({ 
-  message, 
-  isOwnMessage, 
-  onMessageUpdated, 
-  onReply, 
+export default function ListingMessageBubble({
+  message,
+  isOwnMessage,
+  onMessageUpdated,
+  onReply,
   onScrollToMessage,
-  isActive, 
+  isActive,
   onSetActive,
   onImagePreview,
   optimisticStatus,
   onRetry,
   onDelete,
-  onMessageInfo
+  onMessageInfo,
+  hideTimestamp = false,
 }: ListingMessageBubbleProps) {
   const [showQuickReactions, setShowQuickReactions] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -415,9 +417,11 @@ export default function ListingMessageBubble({
                 This message has been deleted
               </span>
             </div>
-            <div className={`mt-1 text-[11px] text-slate-400 dark:text-slate-500 ${isOwnMessage ? "text-right" : ""}`}>
-              {formatTime(message.created_at)}
-            </div>
+            {!hideTimestamp && (
+              <div className={`mt-1 text-[11px] text-slate-400 dark:text-slate-500 ${isOwnMessage ? "text-right" : ""}`}>
+                {formatTime(message.created_at)}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -694,7 +698,9 @@ export default function ListingMessageBubble({
         )}
 
         <div className="text-xs mt-1 flex items-center gap-2 font-outfit">
-          <span className="text-slate-400 dark:text-slate-500">{formatTime(message.created_at)}</span>
+          {!hideTimestamp && (
+            <span className="text-slate-400 dark:text-slate-500">{formatTime(message.created_at)}</span>
+          )}
           {optimisticStatus === 'sending' && (
             <span className="inline-flex items-center gap-1 text-slate-400 dark:text-slate-500">
               <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>

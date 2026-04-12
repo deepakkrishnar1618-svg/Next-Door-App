@@ -180,7 +180,8 @@ export default function EventsPage({ onGoToEventChat }: EventsPageProps) {
       if (response.ok) {
         setDeletingEventId(null);
         setDeleteConfirmText("");
-        router.push('/events');
+        fetchMyEvents();
+        fetchUpcomingEvents();
       } else {
         const error = await response.json();
         alert(error.error || "Failed to delete event");

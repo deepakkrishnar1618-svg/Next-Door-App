@@ -80,8 +80,8 @@ export default function CreateEventPage() {
     }
     setIsCreating(true);
     try {
-      const startDatetime = `${startDate}T${startTime}:00.000Z`;
-      const endDatetime = `${endDate}T${endTime}:00.000Z`;
+      const startDatetime = new Date(`${startDate}T${startTime}:00`).toISOString();
+      const endDatetime = new Date(`${endDate}T${endTime}:00`).toISOString();
       const response = await fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

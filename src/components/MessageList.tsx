@@ -558,6 +558,13 @@ export default function MessageList({
                         onGoToEventChat={onGoToEventChat}
                         isAdmin={isAdmin}
                         onMessageInfo={onMessageInfo}
+                        hideTimestamp={(() => {
+                          const nextMsg = allMessages[index + 1];
+                          if (!nextMsg || 'isOptimistic' in nextMsg) return false;
+                          const next = nextMsg as Message;
+                          if (next.user_id !== msg.user_id) return false;
+                          return new Date(next.created_at).getTime() - new Date(msg.created_at).getTime() < 60000;
+                        })()}
                       />
                     </div>
                   );

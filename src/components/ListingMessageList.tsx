@@ -211,6 +211,15 @@ const ListingMessageList = forwardRef<ListingMessageListRef, ListingMessageListP
                 onRetry={optMsg?.onRetry}
                 onDelete={optMsg?.onDelete}
                 onMessageInfo={onMessageInfo}
+                hideTimestamp={(() => {
+                  const nextMsg = allMessages[index + 1];
+                  if (!nextMsg) return false;
+                  const nextIsJoin = 'is_join_message' in nextMsg && nextMsg.is_join_message;
+                  const nextIsLeave = 'is_leave_message' in nextMsg && nextMsg.is_leave_message;
+                  if (nextIsJoin || nextIsLeave) return false;
+                  if (nextMsg.user_id !== message.user_id) return false;
+                  return new Date(nextMsg.created_at).getTime() - new Date(message.created_at).getTime() < 60000;
+                })()}
               />
             )}
           </div>

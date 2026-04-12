@@ -105,17 +105,18 @@ interface MessageBubbleProps {
   onDelete?: () => void;
   isAdmin?: boolean;
   onMessageInfo?: (messageId: number) => void;
+  hideTimestamp?: boolean;
 }
 
-export default function MessageBubble({ 
-  message, 
-  isOwnMessage, 
-  onMessageUpdated, 
-  onReply, 
-  onScrollToMessage, 
-  isActive, 
-  onSetActive, 
-  isLastReadMessage, 
+export default function MessageBubble({
+  message,
+  isOwnMessage,
+  onMessageUpdated,
+  onReply,
+  onScrollToMessage,
+  isActive,
+  onSetActive,
+  isLastReadMessage,
   onImagePreview,
   onJoinEvent,
   onGoToEventChat,
@@ -123,7 +124,8 @@ export default function MessageBubble({
   onRetry,
   onDelete: onDeleteOptimistic,
   isAdmin = false,
-  onMessageInfo
+  onMessageInfo,
+  hideTimestamp = false,
 }: MessageBubbleProps) {
   // Debug logging for listing cards
   useEffect(() => {
@@ -487,6 +489,18 @@ export default function MessageBubble({
   const isMessageDeleted = message.is_deleted === 1 || message.is_deleted === true;
   const isReminder = message.is_active_announcement === 1 || message.is_active_announcement === true;
 
+  // Deleted event/listing card — show system-style placeholder instead of full card
+  if (isMessageDeleted && (message.event_id || message.listing_id)) {
+    const label = message.event_id
+      ? `"${message.event?.name ?? 'Event'}" has been deleted`
+      : `"${(message.listing as Record<string, unknown> | undefined)?.title as string ?? 'Request'}" has been deleted`;
+    return (
+      <div className="flex justify-center my-1">
+        <span className="text-xs text-slate-400 dark:text-slate-500 italic font-outfit">{label}</span>
+      </div>
+    );
+  }
+
   // If message has an event, render EventMessageDisplay
   if (message.event) {
     return (
@@ -534,9 +548,11 @@ export default function MessageBubble({
             </div>
           )}
           <EventMessageDisplay event={message.event} onJoinEvent={onJoinEvent} onGoToChat={onGoToEventChat} />
-          <div className="text-xs mt-1 flex items-center gap-1 font-outfit">
-            <span className="text-slate-400 dark:text-slate-500">{formatTime(message.created_at)}</span>
-          </div>
+          {!hideTimestamp && (
+            <div className="text-xs mt-1 flex items-center gap-1 font-outfit">
+              <span className="text-slate-400 dark:text-slate-500">{formatTime(message.created_at)}</span>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -588,14 +604,16 @@ export default function MessageBubble({
               )}
             </div>
           )}
-          <ListingMessageDisplay 
-            listing={message.listing} 
+          <ListingMessageDisplay
+            listing={message.listing}
             isCreator={isOwnMessage}
             onListingUpdated={onMessageUpdated}
           />
-          <div className="text-xs mt-1 flex items-center gap-1 font-outfit">
-            <span className="text-slate-400 dark:text-slate-500">{formatTime(message.created_at)}</span>
-          </div>
+          {!hideTimestamp && (
+            <div className="text-xs mt-1 flex items-center gap-1 font-outfit">
+              <span className="text-slate-400 dark:text-slate-500">{formatTime(message.created_at)}</span>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -642,17 +660,19 @@ export default function MessageBubble({
             </div>
           )}
           <div className={`w-fit px-4 py-2 rounded-bubble ${
-            isOwnMessage 
-              ? "bg-slate-100 dark:bg-dark-elevated rounded-br-md" 
+            isOwnMessage
+              ? "bg-slate-100 dark:bg-dark-elevated rounded-br-md"
               : "bg-slate-100 dark:bg-dark-elevated rounded-bl-md"
           }`}>
             <span className="text-sm italic text-slate-400 dark:text-slate-500 font-outfit">
               This message has been deleted
             </span>
           </div>
-          <div className="text-xs mt-1 flex items-center gap-1 font-outfit">
-            <span className="text-slate-400 dark:text-slate-500">{formatTime(message.created_at)}</span>
-          </div>
+          {!hideTimestamp && (
+            <div className="text-xs mt-1 flex items-center gap-1 font-outfit">
+              <span className="text-slate-400 dark:text-slate-500">{formatTime(message.created_at)}</span>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -809,7 +829,7 @@ export default function MessageBubble({
                             Delete
                           </button>
                         )}
-                        {onMessageInfo && message.id > 0 && (
+                        {onMessageInfo && message.id > 0 && isOwnMessage && (
                           <button
                             onClick={() => {
                               setShowMenu(false);
@@ -1134,8 +1154,10 @@ export default function MessageBubble({
             </>
           )}
           
-          <span className="text-slate-400 dark:text-slate-500">{formatTime(message.created_at)}</span>
-          
+          {!hideTimestamp && (
+            <span className="text-slate-400 dark:text-slate-500">{formatTime(message.created_at)}</span>
+          )}
+
           {/* Optimistic status indicators */}
           {optimisticStatus === 'sending' && (
             <span className="inline-flex items-center gap-1 text-slate-400 dark:text-slate-500">

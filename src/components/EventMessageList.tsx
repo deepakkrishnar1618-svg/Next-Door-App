@@ -630,6 +630,14 @@ export default function EventMessageList({
                     onScrollToMessage={handleScrollToMessage}
                     onImagePreview={onImagePreview}
                     onMessageInfo={onMessageInfo}
+                    hideTimestamp={(() => {
+                      const nextMsg = allMessages[index + 1];
+                      if (!nextMsg || 'isOptimistic' in nextMsg) return false;
+                      const next = nextMsg as EventMessage;
+                      if (next.is_join_message || next.is_event_details || next.is_leave_message) return false;
+                      if (next.user_id !== regularMsg.user_id) return false;
+                      return new Date(next.created_at).getTime() - new Date(regularMsg.created_at).getTime() < 60000;
+                    })()}
                   />
                 </div>
               )}
