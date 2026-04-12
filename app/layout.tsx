@@ -8,7 +8,14 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: "Next Door",
-  description: "Interchange neighborhood community app",
+  description: "Your neighbourhood community",
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: { url: '/icon.svg', type: 'image/svg+xml' },
+  },
 };
 
 export default function RootLayout({
