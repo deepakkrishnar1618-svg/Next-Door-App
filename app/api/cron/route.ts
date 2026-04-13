@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getServiceClient } from '@/src/lib/api-helpers';
+import { buildDailyDigestEmail } from '@/src/lib/email-templates';
+import { sendEmail } from '@/src/lib/send-email';
 
 export async function POST(request: NextRequest) {
   const secret = request.headers.get('x-webhook-secret');
@@ -9,7 +11,6 @@ export async function POST(request: NextRequest) {
 
   try {
     const db = getServiceClient();
-    const apiKey = process.env.RESEND_API_KEY;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextdoor.website';
 
     // Fetch all relevant settings in one query
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
       return Response.json({ success: true, sent: false, reason: 'Email notifications disabled' });
     }
 
-    if (!apiKey) {
+    if (!process.env.RESEND_API_KEY) {
       return Response.json({ success: false, sent: false, reason: 'RESEND_API_KEY not configured' }, { status: 500 });
     }
 
@@ -127,79 +128,24 @@ export async function POST(request: NextRequest) {
     let sent = 0;
     let failed = 0;
 
+    const dateLabel = now.toLocaleDateString('en-GB', {
+      weekday: 'long', month: 'short', day: 'numeric', timeZone: 'Europe/London',
+    });
+
     for (const recipient of recipients ?? []) {
       if (!recipient.email?.includes('@')) { failed++; continue; }
 
-      const htmlBody = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>Next Door Daily Digest</title>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
-            .container { max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-            .header { background: #166534; padding: 32px 32px 24px; text-align: center; }
-            .header h1 { color: white; margin: 0 0 4px; font-size: 24px; }
-            .header p { color: #bbf7d0; margin: 0; font-size: 14px; }
-            .body { padding: 32px; }
-            .greeting { font-size: 16px; color: #374151; margin-bottom: 24px; }
-            .stats { display: flex; gap: 12px; margin-bottom: 28px; }
-            .stat { flex: 1; background: #f0fdf4; border-radius: 12px; padding: 16px; text-align: center; }
-            .stat-value { font-size: 28px; font-weight: 700; color: #166534; display: block; }
-            .stat-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; display: block; }
-            .cta { display: block; text-align: center; background: #22c55e; color: white; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: 600; font-size: 16px; margin: 24px 0; }
-            .footer { padding: 20px 32px; background: #f8fafc; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af; text-align: center; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>🏠 Next Door</h1>
-              <p>Your neighborhood digest</p>
-            </div>
-            <div class="body">
-              <p class="greeting">Hi ${recipient.name},</p>
-              <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">Here's what's been happening in your building:</p>
-              <div class="stats">
-                <div class="stat">
-                  <span class="stat-value">${newMessages ?? 0}</span>
-                  <span class="stat-label">New Messages</span>
-                </div>
-                <div class="stat">
-                  <span class="stat-value">${activeEvents ?? 0}</span>
-                  <span class="stat-label">Active Events</span>
-                </div>
-                <div class="stat">
-                  <span class="stat-value">${activeListings ?? 0}</span>
-                  <span class="stat-label">Open Requests</span>
-                </div>
-              </div>
-              <a href="${appUrl}/chat" class="cta">Open Next Door →</a>
-            </div>
-            <div class="footer">
-              You're receiving this because you're subscribed to digests.<br>
-              Contact your building admin to unsubscribe.
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
-
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: 'Next Door <noreply@nextdoor.website>',
-          reply_to: 'deepakkrishnar1618@gmail.com',
-          to: recipient.email,
-          subject: `🏠 Next Door — ${now.toLocaleDateString('en-GB', { weekday: 'long', month: 'short', day: 'numeric', timeZone: 'Europe/London' })}`,
-          html: htmlBody,
-        }),
+      const { subject, html } = buildDailyDigestEmail({
+        recipientName: recipient.name || 'Neighbour',
+        messageCount: newMessages ?? 0,
+        eventCount: activeEvents ?? 0,
+        requestCount: activeListings ?? 0,
+        appUrl,
+        dateLabel,
       });
 
-      if (res.ok) { sent++; } else { failed++; }
+      const ok = await sendEmail(recipient.email, subject, html);
+      if (ok) { sent++; } else { failed++; }
       await new Promise(r => setTimeout(r, 100));
     }
 

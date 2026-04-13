@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error } from '@/src/lib/api-helpers';
+import { buildAccountDeletedEmail } from '@/src/lib/email-templates';
+import { sendEmail } from '@/src/lib/send-email';
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const userId = await authenticate();
@@ -28,7 +30,8 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const { id: targetId } = await params;
   if (targetId === userId) return error('You cannot delete your own account', 400);
 
-  const { data: targetUser } = await db.from('users').select('name, room_number').eq('id', targetId).single();
+  // Fetch email BEFORE anonymizing — needed for deletion notification
+  const { data: targetUser } = await db.from('users').select('name, email, room_number').eq('id', targetId).single();
 
   // Clean up user associations (keep messages — anonymized below)
   await db.from('reactions').delete().eq('user_id', targetId);
@@ -67,6 +70,16 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
       message: `${(targetUser as Record<string, unknown>).name || 'User'} was deleted`,
       metadata: JSON.stringify({ message_type: 'user_deleted', name: (targetUser as Record<string, unknown>).name, room_number: (targetUser as Record<string, unknown>).room_number }),
     });
+    // Notify the user by email (send before auth record is removed)
+    const email = (targetUser as Record<string, unknown>).email as string | null;
+    if (email?.includes('@')) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextdoor.website';
+      const { subject, html } = buildAccountDeletedEmail(
+        ((targetUser as Record<string, unknown>).name as string) || 'there',
+        appUrl,
+      );
+      await sendEmail(email, subject, html);
+    }
   }
 
   return json({ success: true });

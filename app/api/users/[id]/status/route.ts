@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error } from '@/src/lib/api-helpers';
+import { buildAccountBlockedEmail, buildAccountReactivatedEmail } from '@/src/lib/email-templates';
+import { sendEmail } from '@/src/lib/send-email';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const userId = await authenticate();
@@ -38,6 +40,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         message: `${targetUser.name || 'User'} was blocked`,
         metadata: JSON.stringify({ message_type: 'user_deactivated', name: targetUser.name, room_number: targetUser.room_number, avatar_url: targetUser.avatar_url }),
       });
+      // Notify the blocked user by email
+      if (targetUser.email?.includes('@')) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextdoor.website';
+        const { subject, html } = buildAccountBlockedEmail(targetUser.name || 'there', appUrl);
+        await sendEmail(targetUser.email, subject, html);
+      }
     }
   } else {
     await db.from('users').update({ is_active: 1, updated_at: new Date().toISOString() }).eq('id', targetId);
@@ -49,6 +57,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         message: `${targetUser.name || 'User'} was reactivated`,
         metadata: JSON.stringify({ message_type: 'user_reactivated', name: targetUser.name, room_number: targetUser.room_number, avatar_url: targetUser.avatar_url }),
       });
+      // Notify the reactivated user by email
+      if (targetUser.email?.includes('@')) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextdoor.website';
+        const { subject, html } = buildAccountReactivatedEmail(targetUser.name || 'there', appUrl);
+        await sendEmail(targetUser.email, subject, html);
+      }
     }
   }
 

@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error, sanitizeHtml } from '@/src/lib/api-helpers';
 import { createClient } from '@/src/lib/supabase/server';
+import { buildWelcomeEmail } from '@/src/lib/email-templates';
+import { sendEmail } from '@/src/lib/send-email';
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
 
@@ -97,7 +99,7 @@ export async function PUT(request: NextRequest) {
 
   await db.from('users').update(updates).eq('id', userId);
 
-  // Create join system message on first-ever profile completion
+  // First-ever profile completion: system message + welcome email
   if (wasIncomplete && updates.profile_completed && updates.name && updates.room_number) {
     await db.from('system_messages').insert({
       type: 'user_joined',
@@ -105,6 +107,14 @@ export async function PUT(request: NextRequest) {
       message: `${updates.name} from Room ${updates.room_number} joined Next Door`,
       metadata: JSON.stringify({ name: updates.name, room_number: updates.room_number, avatar_url: avatar_url || null }),
     });
+
+    // Send welcome email (fire-and-forget — don't block the response)
+    const { data: userRecord } = await db.from('users').select('email').eq('id', userId).single();
+    if (userRecord?.email?.includes('@')) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextdoor.website';
+      const { subject, html } = buildWelcomeEmail(updates.name as string, appUrl);
+      sendEmail(userRecord.email, subject, html).catch(() => {});
+    }
   }
 
   const { data: updatedUser } = await db.from('users').select('*').eq('id', userId).single();
