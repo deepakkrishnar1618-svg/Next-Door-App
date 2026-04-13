@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/src/lib/auth-hook";
 import { 
   MessageCircle, 
   Users, 
@@ -60,6 +61,7 @@ interface OnboardingProps {
 export default function Onboarding({ isModal = false, onClose }: OnboardingProps) {
   const [currentScreen, setCurrentScreen] = useState(0);
   const router = useRouter();
+  const { user } = useAuth();
 
   const handleNext = () => {
     if (currentScreen < screens.length - 1) {
@@ -78,7 +80,7 @@ export default function Onboarding({ isModal = false, onClose }: OnboardingProps
       onClose();
     } else {
       // Mark onboarding as completed in localStorage, then go to profile setup
-      localStorage.setItem("onboarding_completed", "true");
+      if (user?.id) localStorage.setItem(`onboarding_completed_${user.id}`, "true");
       router.push("/chat");
     }
   };
@@ -87,7 +89,7 @@ export default function Onboarding({ isModal = false, onClose }: OnboardingProps
     if (isModal && onClose) {
       onClose();
     } else {
-      localStorage.setItem("onboarding_completed", "true");
+      if (user?.id) localStorage.setItem(`onboarding_completed_${user.id}`, "true");
       router.push("/chat");
     }
   };

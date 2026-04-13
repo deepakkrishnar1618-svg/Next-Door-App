@@ -11,10 +11,11 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (!isPending && !user) { router.push("/"); return; }
-    // Guard: localStorage is not available during SSR
-    if (typeof window !== 'undefined') {
-      const completed = localStorage.getItem("onboarding_completed");
-      if (completed === "true") router.push("/chat");
+    // Key the onboarding flag to the user ID so deleted+re-registered users
+    // always see onboarding fresh (their old localStorage entry has a different key)
+    if (typeof window !== 'undefined' && user) {
+      const key = `onboarding_completed_${user.id}`;
+      if (localStorage.getItem(key) === "true") router.push("/chat");
     }
   }, [user, isPending, router]);
 

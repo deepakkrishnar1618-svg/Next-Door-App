@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/src/lib/auth-hook";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/src/lib/supabase/client";
 import MessageList from "@/src/components/MessageList";
 import MessageInput from "@/src/components/MessageInput";
 import UserList from "@/src/components/UserList";
@@ -156,6 +157,63 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
   useEffect(() => {
     fetchPinnedMessages();
   }, []);
+
+  // ── Real-time block detection ────────────────────────────────────────────
+  // Polls every 30s AND subscribes to realtime changes on the users row.
+  // Either mechanism triggers an immediate sign-out + redirect to /blocked.
+  const blockCheckRef = useRef(false);
+  useEffect(() => {
+    if (!user?.id) return;
+    blockCheckRef.current = false;
+
+    const supabase = createClient();
+
+    const handleBlocked = async () => {
+      if (blockCheckRef.current) return;
+      blockCheckRef.current = true;
+      await supabase.auth.signOut();
+      router.replace('/blocked');
+    };
+
+    // Polling — fires every 30 seconds
+    const checkActive = async () => {
+      try {
+        const res = await fetch('/api/profile', { credentials: 'include' });
+        if (res.status === 401 || res.status === 403) {
+          await handleBlocked();
+          return;
+        }
+        if (res.ok) {
+          const data = await res.json();
+          if (data.is_active === 0 || data.is_active === false) {
+            await handleBlocked();
+          }
+        }
+      } catch { /* network error — don't redirect */ }
+    };
+
+    const pollInterval = setInterval(checkActive, 30_000);
+
+    // Realtime — instant detection when admin changes is_active
+    const channel = supabase
+      .channel(`user-status-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${user.id}` },
+        (payload) => {
+          const updated = payload.new as { is_active?: number | boolean };
+          if (updated.is_active === 0 || updated.is_active === false) {
+            handleBlocked();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      clearInterval(pollInterval);
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, router]);
 
   // Poll for new messages every 3 seconds
   useEffect(() => {
