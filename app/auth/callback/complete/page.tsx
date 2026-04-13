@@ -1,67 +1,89 @@
 'use client'
 
+/**
+ * Auth callback completion page (referenced by other parts of the app).
+ * The real session pickup happens in /auth/callback/page.tsx which sits
+ * at the URL Google actually redirects to, preserving the hash fragment.
+ * This page just shows a loading state and waits for the session that the
+ * parent page already established.
+ */
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 
 export default function AuthCallbackComplete() {
   const router = useRouter()
-  const [status, setStatus] = useState('Completing sign in...')
+  const [attempts, setAttempts] = useState(0)
+  const [status, setStatus] = useState('Signing you in…')
 
   useEffect(() => {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        auth: {
-          flowType: 'implicit',
-        },
-      }
+      { auth: { flowType: 'implicit' } }
     )
 
-    let timedOut = false
+    let cancelled = false
+    let attemptCount = 0
+    const MAX_ATTEMPTS = 15
 
-    const timeout = setTimeout(() => {
-      timedOut = true
-      setStatus('Session not found — redirecting...')
-      router.replace('/?error=session')
-    }, 5000)
-
-    const navigate = (session: { user: unknown } | null) => {
-      if (timedOut) return
-      clearTimeout(timeout)
-      if (!session) {
-        router.replace('/?error=session')
-        return
+    const redirectToApp = async () => {
+      try {
+        const { data } = await fetch('/api/profile', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null)
+        router.replace(data?.profile_completed ? '/chat' : '/profile/setup')
+      } catch {
+        router.replace('/profile/setup')
       }
-      fetch('/api/profile', { credentials: 'include' })
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          router.replace(data?.profile_completed ? '/chat' : '/profile/setup')
-        })
-        .catch(() => router.replace('/profile/setup'))
     }
 
-    // onAuthStateChange fires with SIGNED_IN as soon as the implicit flow
-    // tokens from the URL hash are detected by the Supabase client.
+    // Listen for auth state change — fires as soon as the hash token is parsed
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) navigate(session)
+      if (cancelled) return
+      if (session) {
+        cancelled = true
+        redirectToApp()
+      }
     })
 
-    // Also check immediately in case the event already fired
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate(session)
-    })
+    // Also poll getSession() in case onAuthStateChange already fired before we subscribed
+    const poll = async () => {
+      while (attemptCount < MAX_ATTEMPTS && !cancelled) {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (cancelled) break
+        if (session) {
+          cancelled = true
+          subscription.unsubscribe()
+          await redirectToApp()
+          return
+        }
+        attemptCount++
+        setAttempts(attemptCount)
+        if (attemptCount >= MAX_ATTEMPTS) break
+        await new Promise(r => setTimeout(r, 1000))
+      }
+      if (!cancelled) {
+        setStatus('Could not sign in — please try again.')
+        await new Promise(r => setTimeout(r, 2000))
+        router.replace('/')
+      }
+    }
+
+    poll()
 
     return () => {
-      clearTimeout(timeout)
+      cancelled = true
       subscription.unsubscribe()
     }
   }, [router])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 flex items-center justify-center">
-      <div className="text-white text-xl">{status}</div>
+    <div className="min-h-screen bg-[#021112] flex flex-col items-center justify-center gap-4">
+      <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      <div className="text-white text-lg">{status}</div>
+      {attempts > 0 && attempts < 15 && (
+        <div className="text-slate-400 text-sm">Waiting for session… ({attempts}/15)</div>
+      )}
     </div>
   )
 }
