@@ -11,11 +11,11 @@ export const metadata: Metadata = {
   description: "Your neighbourhood chat",
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
       { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
     ],
     shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.svg',
+    apple: { url: '/apple-touch-icon.svg', type: 'image/svg+xml' },
   },
 };
 

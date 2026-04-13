@@ -197,7 +197,7 @@ export default function PrivacyPolicy() {
               Cookies and Local Storage
             </h2>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-              We use cookies and local storage to maintain your login session and remember your preferences (such as dark/light mode). These are essential for the app to function properly. For more details, see our <Link href="/cookies" className="text-emerald-600 dark:text-primary-mint hover:underline">Cookie Policy</Link>.
+              We use cookies and local storage to maintain your login session and remember your preferences (such as dark/light mode). These are essential for the app to function properly. For more details, see our <Link href="/cookies" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-primary-mint hover:underline">Cookie Policy</Link>.
             </p>
           </section>
 
@@ -234,10 +234,10 @@ export default function PrivacyPolicy() {
             © {new Date().getFullYear()} Next Door. All rights reserved.
           </p>
           <div className="mt-2 flex justify-center gap-4 text-sm">
-            <Link href="/terms" className="text-emerald-600 dark:text-primary-mint hover:underline">
+            <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-primary-mint hover:underline">
               Terms of Service
             </Link>
-            <Link href="/cookies" className="text-emerald-600 dark:text-primary-mint hover:underline">
+            <Link href="/cookies" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-primary-mint hover:underline">
               Cookie Policy
             </Link>
           </div>

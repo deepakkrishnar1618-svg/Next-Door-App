@@ -45,15 +45,29 @@ export default function AuthCallbackPage() {
     const redirectToApp = async () => {
       try {
         const res = await fetch('/api/profile', { credentials: 'include' })
+
+        if (res.status === 403) {
+          // Blocked user — sign out and redirect
+          const errData = await res.json().catch(() => ({}))
+          const msg = (errData?.error || '').toLowerCase()
+          await supabase.auth.signOut()
+          if (msg.includes('blocked') || msg.includes('deactivated')) {
+            router.replace('/blocked')
+          } else {
+            router.replace('/')
+          }
+          return
+        }
+
         const data = res.ok ? await res.json() : null
         if (data?.profile_completed) {
           router.replace('/chat')
         } else {
-          // New user — show onboarding welcome screens before profile setup
-          router.replace('/onboarding')
+          // New user — fill in profile details first
+          router.replace('/profile/setup')
         }
       } catch {
-        router.replace('/onboarding')
+        router.replace('/profile/setup')
       }
     }
 

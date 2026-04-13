@@ -181,10 +181,10 @@ export default function CookiePolicy() {
             © {new Date().getFullYear()} Next Door. All rights reserved.
           </p>
           <div className="mt-2 flex justify-center gap-4 text-sm">
-            <Link href="/privacy" className="text-emerald-600 dark:text-primary-mint hover:underline">
+            <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-primary-mint hover:underline">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="text-emerald-600 dark:text-primary-mint hover:underline">
+            <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-primary-mint hover:underline">
               Terms of Service
             </Link>
           </div>

@@ -61,8 +61,8 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     updated_at: new Date().toISOString(),
   }).eq('id', targetId);
 
-  // Remove user from Supabase Auth
-  await db.auth.admin.deleteUser(targetId);
+  // Invalidate session immediately but keep Supabase Auth account so they can re-register
+  await db.auth.admin.signOut(targetId, 'global');
 
   if (targetUser) {
     await db.from('system_messages').insert({

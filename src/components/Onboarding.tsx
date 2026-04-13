@@ -79,7 +79,7 @@ export default function Onboarding({ isModal = false, onClose }: OnboardingProps
     } else {
       // Mark onboarding as completed in localStorage, then go to profile setup
       localStorage.setItem("onboarding_completed", "true");
-      router.push("/profile/setup");
+      router.push("/chat");
     }
   };
 
@@ -88,7 +88,7 @@ export default function Onboarding({ isModal = false, onClose }: OnboardingProps
       onClose();
     } else {
       localStorage.setItem("onboarding_completed", "true");
-      router.push("/profile/setup");
+      router.push("/chat");
     }
   };
 

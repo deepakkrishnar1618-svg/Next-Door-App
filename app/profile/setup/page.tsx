@@ -71,7 +71,7 @@ export default function ProfileSetupPage() {
       });
       if (!response.ok) throw new Error("Failed to update profile");
       if (agreedToCookies) localStorage.setItem('cookieConsent', 'accepted');
-      router.push("/chat");
+      router.push("/onboarding");
     } catch (error) {
       console.error("Profile setup error:", error);
       alert("Failed to setup profile. Please try again.");
@@ -167,16 +167,16 @@ export default function ProfileSetupPage() {
               <input type="checkbox" id="agree-terms" checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} className="mt-1 w-5 h-5 rounded border-2 border-slate-300 dark:border-slate-600 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer accent-emerald-500" />
               <label htmlFor="agree-terms" className="text-sm text-gray-600 dark:text-slate-300 font-outfit cursor-pointer">
                 I agree to the{" "}
-                <Link href="/privacy" target="_blank" className="text-emerald-600 dark:text-primary-mint hover:underline font-medium">Privacy Policy</Link>
+                <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-primary-mint hover:underline font-medium">Privacy Policy</Link>
                 {" "}and{" "}
-                <Link href="/terms" target="_blank" className="text-emerald-600 dark:text-primary-mint hover:underline font-medium">Terms of Service</Link>
+                <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-primary-mint hover:underline font-medium">Terms of Service</Link>
               </label>
             </div>
             <div className="flex items-start gap-3">
               <input type="checkbox" id="agree-cookies" checked={agreedToCookies} onChange={(e) => setAgreedToCookies(e.target.checked)} className="mt-1 w-5 h-5 rounded border-2 border-slate-300 dark:border-slate-600 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer accent-emerald-500" />
               <label htmlFor="agree-cookies" className="text-sm text-gray-600 dark:text-slate-300 font-outfit cursor-pointer">
                 I agree to{" "}
-                <Link href="/cookies" target="_blank" className="text-emerald-600 dark:text-primary-mint hover:underline font-medium">Essential Cookies</Link>
+                <Link href="/cookies" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-primary-mint hover:underline font-medium">Essential Cookies</Link>
               </label>
             </div>
             <button type="submit" disabled={isSubmitting || !isFormValid} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-outfit">

@@ -53,9 +53,24 @@ export async function GET() {
 
   if (!dbUser) return error('Failed to create user record', 500);
 
-  // Blocked / deactivated check
-  if (dbUser.is_active === 0 && !dbUser.is_deleted) return error('Your account has been deactivated', 403);
-  if (dbUser.is_deleted) return error('Your account has been deleted', 403);
+  // Blocked (but not deleted) — reject with 403
+  if (dbUser.is_active === 0 && !dbUser.is_deleted) return error('Your account has been blocked', 403);
+
+  // Deleted user signs back in with same Google account — give them a fresh start
+  if (dbUser.is_deleted) {
+    await db.from('users').update({
+      is_deleted: false,
+      is_active: 1,
+      profile_completed: false,
+      name: null,
+      room_number: null,
+      avatar_url: null,
+      email: userEmail,
+      updated_at: new Date().toISOString(),
+    }).eq('id', userId);
+    const { data: resetUser } = await db.from('users').select('*').eq('id', userId).single();
+    dbUser = resetUser;
+  }
 
   // Touch online status
   await db.from('users')

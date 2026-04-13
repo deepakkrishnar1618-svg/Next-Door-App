@@ -97,9 +97,9 @@ export default function HomePage() {
           Stay connected with your neighbourhood
         </p>
         <div className="mt-4 flex justify-center gap-4 text-xs text-[#9CA3AF] dark:text-slate-500">
-          <Link href="/privacy" className="hover:text-emerald-500 dark:hover:text-primary-mint transition-colors">Privacy Policy</Link>
+          <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-500 dark:hover:text-primary-mint transition-colors">Privacy Policy</Link>
           <span>·</span>
-          <Link href="/terms" className="hover:text-emerald-500 dark:hover:text-primary-mint transition-colors">Terms of Service</Link>
+          <Link href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-500 dark:hover:text-primary-mint transition-colors">Terms of Service</Link>
         </div>
       </div>
     </div>
