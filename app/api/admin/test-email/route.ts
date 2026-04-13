@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error } from '@/src/lib/api-helpers';
+import { isRateLimited, getClientIp } from '@/src/lib/rate-limit';
 
 const emailHtml = (appUrl: string) => `
 <!DOCTYPE html><html><body style="font-family: -apple-system, sans-serif; background: #f5f5f5; margin: 0; padding: 40px 20px;">
@@ -20,6 +21,7 @@ const emailHtml = (appUrl: string) => `
 `;
 
 export async function POST(request: NextRequest) {
+  if (isRateLimited(getClientIp(request), 'admin:test-email', 5)) return error('Too many requests', 429);
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);
   const db = getServiceClient();

@@ -70,14 +70,21 @@ export function validateFileUpload(file: File, type: 'image' | 'attachment') {
   const maxSize = 30 * 1024 * 1024;
   if (file.size > maxSize) return { valid: false, error: 'File size exceeds 30MB limit' };
 
+  const nameLower = file.name.toLowerCase();
+
   if (type === 'image') {
-    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowed.includes(file.type)) return { valid: false, error: 'Invalid image type' };
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    if (!allowedMimes.includes(file.type)) return { valid: false, error: 'Invalid image type' };
+    if (!allowedExts.some(ext => nameLower.endsWith(ext))) return { valid: false, error: 'Invalid image extension' };
   } else {
-    const blocked = ['application/x-msdownload', 'application/x-executable', 'application/x-sh'];
-    if (blocked.includes(file.type)) return { valid: false, error: 'Executable files are not allowed' };
-    const blockedExt = ['.exe', '.bat', '.cmd', '.sh', '.msi', '.dmg'];
-    if (blockedExt.some(ext => file.name.toLowerCase().endsWith(ext))) {
+    const blockedMimes = [
+      'application/x-msdownload', 'application/x-executable', 'application/x-sh',
+      'application/x-dosexec', 'application/octet-stream',
+    ];
+    const blockedExts = ['.exe', '.bat', '.cmd', '.sh', '.msi', '.dmg', '.ps1', '.vbs', '.jar', '.com', '.scr', '.pif'];
+    if (blockedMimes.includes(file.type)) return { valid: false, error: 'Executable files are not allowed' };
+    if (blockedExts.some(ext => nameLower.endsWith(ext))) {
       return { valid: false, error: 'Executable file extensions are not allowed' };
     }
   }

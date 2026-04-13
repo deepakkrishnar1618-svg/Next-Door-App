@@ -1,7 +1,9 @@
 import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error, sanitizeHtml } from '@/src/lib/api-helpers';
+import { isRateLimited, getClientIp } from '@/src/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
+  if (isRateLimited(getClientIp(request), 'listings:get', 60)) return error('Too many requests', 429);
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);
   const db = getServiceClient();
@@ -81,6 +83,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (isRateLimited(getClientIp(request), 'listings:post', 20)) return error('Too many requests', 429);
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);
   const db = getServiceClient();
@@ -100,6 +103,8 @@ export async function POST(request: NextRequest) {
   const { title, description, type, transaction_type, is_free, price, rental_start_datetime, rental_end_datetime, images } = body;
 
   if (!title?.trim()) return error('Title is required', 400);
+  if (title.length > 100) return error('Title cannot exceed 100 characters', 400);
+  if (description && description.length > 1000) return error('Description cannot exceed 1000 characters', 400);
 
   const { data: listing } = await db.from('market_listings').insert({
     title: sanitizeHtml(title),

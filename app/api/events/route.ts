@@ -1,7 +1,9 @@
 import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error, sanitizeHtml } from '@/src/lib/api-helpers';
+import { isRateLimited, getClientIp } from '@/src/lib/rate-limit';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (isRateLimited(getClientIp(request), 'events:get', 60)) return error('Too many requests', 429);
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);
   const db = getServiceClient();
@@ -51,6 +53,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (isRateLimited(getClientIp(request), 'events:post', 20)) return error('Too many requests', 429);
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);
   const db = getServiceClient();
@@ -62,6 +65,9 @@ export async function POST(request: NextRequest) {
   const { name, description, location, start_datetime, end_datetime, max_members, image_url } = body;
 
   if (!name?.trim() || !start_datetime || !end_datetime) return error('Missing required fields', 400);
+  if (name.length > 100) return error('Event name cannot exceed 100 characters', 400);
+  if (description && description.length > 1000) return error('Description cannot exceed 1000 characters', 400);
+  if (location && location.length > 200) return error('Location cannot exceed 200 characters', 400);
   if (max_members > 50) return error('Max members cannot exceed 50', 400);
 
   const start = new Date(start_datetime);

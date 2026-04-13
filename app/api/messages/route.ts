@@ -1,7 +1,9 @@
 import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error, sanitizeHtml } from '@/src/lib/api-helpers';
+import { isRateLimited, getClientIp } from '@/src/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
+  if (isRateLimited(getClientIp(request), 'messages:get', 120)) return error('Too many requests', 429);
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);
 
@@ -23,12 +25,7 @@ export async function GET(request: NextRequest) {
 
   const { data: rawMessages, error: msgErr } = await query;
 
-  if (msgErr) {
-    console.error('[GET /api/messages] DB error:', msgErr.message, msgErr.details);
-    return json([]);
-  }
-
-  console.log(`[GET /api/messages] group=${groupId} rows=${rawMessages?.length ?? 0}`);
+  if (msgErr) return json([]);
 
   // Collect unique user IDs and fetch their profiles in one query
   const allUserIds = (rawMessages || []).map((m: Record<string, unknown>) => m.user_id as string);
@@ -247,13 +244,13 @@ export async function GET(request: NextRequest) {
   // Fetch the current user's last_read_message_id so the client can compute unread position
   const { data: userRow } = await db.from('users').select('last_read_message_id').eq('id', userId).single();
 
-  console.log(`[GET /api/messages] returning ${combined.length} total items (${messages.length} messages + ${systemMsgs?.length ?? 0} system)`);
 
   // Return as object so useMessages can read last_read_message_id alongside the array
   return json({ messages: combined, last_read_message_id: userRow?.last_read_message_id || null });
 }
 
 export async function POST(request: NextRequest) {
+  if (isRateLimited(getClientIp(request), 'messages:post', 60)) return error('Too many requests', 429);
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);
 
@@ -269,7 +266,7 @@ export async function POST(request: NextRequest) {
 
   const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
   if ((!content || !content.trim()) && !hasAttachments) return error('Content or attachment is required', 400);
-  if (content && content.length > 5000) return error('Message too long', 400);
+  if (content && content.length > 2000) return error('Message too long', 400);
 
   const sanitized = content ? sanitizeHtml(content) : '';
 

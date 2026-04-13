@@ -2,11 +2,23 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Skip all auth callback routes — the Supabase client handles token exchange
+  // client-side (implicit flow). Running auth.getUser() here on a PKCE-default
+  // server client would consume the code/verifier before the page can use it.
+  if (pathname.startsWith('/auth/')) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({ request })
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      auth: {
+        flowType: 'implicit',
+      },
       cookies: {
         getAll() { return request.cookies.getAll() },
         setAll(cookiesToSet) {
@@ -20,8 +32,6 @@ export async function middleware(request: NextRequest) {
     }
   )
   const { data: { user } } = await supabase.auth.getUser()
-
-  const { pathname } = request.nextUrl
 
   // Check if blocked user is trying to access app (skip /blocked, /api/*, and auth routes)
   if (user && !pathname.startsWith('/blocked') && !pathname.startsWith('/api/') && pathname !== '/') {

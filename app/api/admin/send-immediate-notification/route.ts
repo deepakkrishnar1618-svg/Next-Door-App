@@ -1,7 +1,9 @@
 import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error } from '@/src/lib/api-helpers';
+import { isRateLimited, getClientIp } from '@/src/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
+  if (isRateLimited(getClientIp(request), 'admin:send-notification', 5)) return error('Too many requests', 429);
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);
   const db = getServiceClient();
