@@ -14,7 +14,8 @@ export default function OnboardingPage() {
     // Guard: localStorage is not available during SSR
     if (typeof window !== 'undefined') {
       const completed = localStorage.getItem("onboarding_completed");
-      if (completed === "true") router.push("/chat");
+      // If onboarding already seen, send to profile setup (not /chat — profile may be incomplete)
+      if (completed === "true") router.push("/profile/setup");
     }
   }, [user, isPending, router]);
 

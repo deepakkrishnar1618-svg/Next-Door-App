@@ -77,9 +77,9 @@ export default function Onboarding({ isModal = false, onClose }: OnboardingProps
     if (isModal && onClose) {
       onClose();
     } else {
-      // Mark onboarding as completed in localStorage
+      // Mark onboarding as completed in localStorage, then go to profile setup
       localStorage.setItem("onboarding_completed", "true");
-      router.push("/chat");
+      router.push("/profile/setup");
     }
   };
 
@@ -88,7 +88,7 @@ export default function Onboarding({ isModal = false, onClose }: OnboardingProps
       onClose();
     } else {
       localStorage.setItem("onboarding_completed", "true");
-      router.push("/chat");
+      router.push("/profile/setup");
     }
   };
 

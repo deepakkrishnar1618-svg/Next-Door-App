@@ -71,7 +71,7 @@ export default function ProfileSetupPage() {
       });
       if (!response.ok) throw new Error("Failed to update profile");
       if (agreedToCookies) localStorage.setItem('cookieConsent', 'accepted');
-      router.push("/onboarding");
+      router.push("/chat");
     } catch (error) {
       console.error("Profile setup error:", error);
       alert("Failed to setup profile. Please try again.");

@@ -46,9 +46,14 @@ export default function AuthCallbackPage() {
       try {
         const res = await fetch('/api/profile', { credentials: 'include' })
         const data = res.ok ? await res.json() : null
-        router.replace(data?.profile_completed ? '/chat' : '/profile/setup')
+        if (data?.profile_completed) {
+          router.replace('/chat')
+        } else {
+          // New user — show onboarding welcome screens before profile setup
+          router.replace('/onboarding')
+        }
       } catch {
-        router.replace('/profile/setup')
+        router.replace('/onboarding')
       }
     }
 
