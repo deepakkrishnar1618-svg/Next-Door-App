@@ -53,7 +53,6 @@ interface FeatureInfo {
   title: string;
   subtitle: string;
   desc: string;
-  image: string;
   bullets: string[];
 }
 
@@ -64,7 +63,6 @@ const FEATURES: FeatureInfo[] = [
     title: "Group Chats & Threads",
     subtitle: "Stay in sync instantly",
     desc: "Communicate with your neighbors in a modern chat room. Express yourself with emoji reactions, reply to threads, upload file or image attachments, and track read receipts dynamically.",
-    image: "/Github-showcase-1.png",
     bullets: ["Real-time online status heartbeat", "Pinned admin announcements", "Full-text message history search"]
   },
   {
@@ -73,7 +71,6 @@ const FEATURES: FeatureInfo[] = [
     title: "Neighborhood Events",
     subtitle: "Organize street events & RSVPs",
     desc: "Create local gatherings, meetings, block parties, or clean-ups. Residents can RSVP with capacity limits, and every event gets a dedicated temporary chat room for coordinated planning.",
-    image: "/Github-showcase-2.png",
     bullets: ["Cap attendee capacities easily", "Dedicated chat room per event", "Automatic past event archiving"]
   },
   {
@@ -82,7 +79,6 @@ const FEATURES: FeatureInfo[] = [
     title: "Local Marketplace",
     subtitle: "Buy, sell, rent, or swap",
     desc: "A secure marketplace dedicated solely to your building or street. List items as Sale, Rent, or Free. Interested parties queue up, enabling the listing creator to pick a buyer and negotiate privately.",
-    image: "/Github-showcase-3.png",
     bullets: ["Rent, Sale, and Free classifications", "Private 1-on-1 offer chats", "Transaction timeline lifecycles"]
   },
   {
@@ -91,7 +87,6 @@ const FEATURES: FeatureInfo[] = [
     title: "Admin Moderation Tools",
     subtitle: "Keep the community safe",
     desc: "Community leads have absolute moderation rights. Manage member activation, suspend accounts, clear chat history when needed, export directory CSVs, and configure automated email digests.",
-    image: "/Github-showcase-4.png",
     bullets: ["User status activation control", "Weekly email digest settings", "CSV member list downloads"]
   },
   {
@@ -100,12 +95,11 @@ const FEATURES: FeatureInfo[] = [
     title: "Rich Member Profiles",
     subtitle: "Know who you are talking to",
     desc: "Each member completes a profile indicating their room or house number and display name. View neighborhood activity history, check real-time online status indicators, and view bios.",
-    image: "/Github-showcase-5.png",
     bullets: ["Apartment and house room numbers", "Real-time online indicators", "Short user biography text"]
   }
 ];
 
-const GoogleIcon = () => (
+const GoogleIconColored = () => (
   <svg className="mr-3 h-5 w-5 shrink-0" viewBox="0 0 24 24">
     <path
       fill="#EA4335"
@@ -126,13 +120,18 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const GoogleIconWhite = () => (
+  <svg className="mr-3 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.51 0-6.357-2.89-6.357-6.457 0-3.568 2.848-6.458 6.357-6.458 1.614 0 3.08.575 4.22 1.517l3.245-3.245C19.24 1.935 15.93 1 12.24 1 5.922 1 1 5.973 1 12.114c0 6.14 4.922 11.115 11.24 11.115 6.458 0 11.24-4.514 11.24-11.115 0-.749-.075-1.425-.225-2.071H12.24z" />
+  </svg>
+);
+
 export default function HomePage() {
   const { user, isPending, redirectToLogin, redirectToGuestLogin } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Component states
-  const [activeFeature, setActiveFeature] = useState<string>("chat");
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -172,18 +171,6 @@ export default function HomePage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Auto-rotate feature showcase screenshot every 8 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveFeature((current) => {
-        const currentIndex = FEATURES.findIndex(f => f.id === current);
-        const nextIndex = (currentIndex + 1) % FEATURES.length;
-        return FEATURES[nextIndex].id;
-      });
-    }, 8000);
-    return () => clearInterval(interval);
-  }, []);
-
   if (isPending) {
     return (
       <div className="min-h-screen bg-[#021112] flex items-center justify-center">
@@ -195,8 +182,6 @@ export default function HomePage() {
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
   };
-
-  const selectedFeature = FEATURES.find(f => f.id === activeFeature) || FEATURES[0];
 
   return (
     <div className="min-h-screen bg-[#021112] text-white font-outfit relative selection:bg-primary-mint selection:text-slate-900">
@@ -260,7 +245,7 @@ export default function HomePage() {
               onClick={redirectToLogin}
               className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2 px-5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm flex items-center gap-2 group"
             >
-              <GoogleIcon />
+              <GoogleIconWhite />
               <span>Sign In</span>
             </button>
           </div>
@@ -319,7 +304,7 @@ export default function HomePage() {
                 onClick={redirectToLogin}
                 className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
               >
-                <GoogleIcon />
+                <GoogleIconWhite />
                 <span>Sign in with Google</span>
               </button>
             </div>
@@ -327,96 +312,63 @@ export default function HomePage() {
         )}
       </header>
 
-      {/* 3. Hero Section (Clean Layout) */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20 md:py-24 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+      {/* 3. Hero Section (Centered & Simplified) */}
+      <section className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 flex flex-col items-center text-center">
         
-        {/* Left Column: Headline */}
-        <div className="lg:col-span-5 flex flex-col text-center lg:text-left items-center lg:items-start">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-primary-mint font-medium text-xs py-1.5 px-3 rounded-full mb-6">
-            <span className="w-1.5 h-1.5 bg-primary-mint rounded-full animate-ping" />
-            <span>Welcome to your Friendly Neighbourhood</span>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight font-nura text-white mb-6">
-            A private app for your <span className="bg-gradient-to-r from-primary-mint via-emerald-400 to-teal-400 bg-clip-text text-transparent">neighbourhood.</span>
-          </h1>
-
-          <p className="text-slate-300 text-base sm:text-lg mb-8 max-w-lg font-light leading-relaxed">
-            Connect with your apartment building, street, or local group. Chat in real time, organize events, and buy, sell, or rent items, all in one secure, private place.
-          </p>
-
-          {/* Call-to-actions */}
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-            <button
-              onClick={redirectToLogin}
-              className="w-full sm:w-auto bg-white hover:bg-slate-100 text-slate-950 font-bold py-4 px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group hover:scale-[1.02]"
-            >
-              <GoogleIcon />
-              <span>Sign in with Google</span>
-            </button>
-            <button 
-              onClick={redirectToGuestLogin}
-              className="w-full sm:w-auto bg-slate-900/60 hover:bg-slate-800/80 text-white border border-white/10 font-semibold py-4 px-8 rounded-xl transition-all duration-200 text-center hover:border-emerald-500/30 flex items-center justify-center gap-2 hover:scale-[1.02]"
-            >
-              <User className="w-5 h-5 text-primary-mint" />
-              <span>Try as Guest</span>
-            </button>
-          </div>
-
-          {/* Quick Metrics */}
-          <div className="grid grid-cols-3 gap-6 sm:gap-10 border-t border-white/10 mt-12 pt-8 w-full max-w-md">
-            <div>
-              <p className="text-xl sm:text-2xl font-bold font-nura text-primary-mint">Real-time</p>
-              <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">WebSockets</p>
-            </div>
-            <div>
-              <p className="text-xl sm:text-2xl font-bold font-nura text-primary-mint">100%</p>
-              <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Self-Hosted</p>
-            </div>
-            <div>
-              <p className="text-xl sm:text-2xl font-bold font-nura text-primary-mint">Zero</p>
-              <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Ad Trackers</p>
-            </div>
-          </div>
+        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-primary-mint font-medium text-xs py-1.5 px-3.5 rounded-full mb-8">
+          <span className="w-1.5 h-1.5 bg-primary-mint rounded-full animate-ping" />
+          <span>Welcome to your Friendly Neighbourhood</span>
         </div>
 
-        {/* Right Column: Static Browser Showcase Mockup (Clean) */}
-        <div className="lg:col-span-7 w-full flex flex-col justify-center items-center relative">
-          {/* Glowing Aura background */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-teal-500/20 rounded-[32px] blur-2xl pointer-events-none -z-10" />
+        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-tight font-nura text-white mb-8 max-w-3xl">
+          A private app for your <span className="bg-gradient-to-r from-primary-mint via-emerald-400 to-teal-400 bg-clip-text text-transparent">neighbourhood.</span>
+        </h1>
 
-          {/* Main Browser Window */}
-          <div className="w-full max-w-3xl rounded-2xl border border-white/10 bg-[#1A2828]/80 backdrop-blur-xl overflow-hidden shadow-2xl transition-all duration-300 hover:border-emerald-500/20">
-            {/* Browser Window Header */}
-            <div className="px-4 py-3 bg-[#0F1C1C] border-b border-white/5 flex items-center gap-6">
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block" />
-                <span className="w-3 h-3 rounded-full bg-yellow-500/80 inline-block" />
-                <span className="w-3 h-3 rounded-full bg-green-500/80 inline-block" />
-              </div>
-              <div className="w-full max-w-md bg-[#1A2828] border border-white/5 rounded-md py-1 px-3 text-[10px] text-slate-400 font-mono text-center flex items-center justify-center gap-1 truncate select-none">
-                <span className="text-emerald-500">🔒 https://</span>nextdoor.website/chat
-              </div>
-            </div>
+        <p className="text-slate-300 text-lg sm:text-xl mb-12 max-w-2xl font-light leading-relaxed">
+          Connect with your apartment building, street, or local group. Chat in real time, organize events, and buy, sell, or rent items, all in one secure, private place.
+        </p>
 
-            {/* Display static chat view mockup */}
-            <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
-              <img 
-                src="/Github-showcase-1.png"
-                alt="Next Door Chat"
-                className="w-full h-full object-cover object-top"
-              />
-            </div>
+        {/* Call-to-actions */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto mb-16">
+          <button
+            onClick={redirectToLogin}
+            className="w-full sm:w-auto bg-white hover:bg-slate-100 text-slate-950 font-bold py-4.5 px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group hover:scale-[1.02] text-base"
+          >
+            <GoogleIconColored />
+            <span>Sign in with Google</span>
+          </button>
+          <button 
+            onClick={redirectToGuestLogin}
+            className="w-full sm:w-auto bg-[#1A2828] hover:bg-[#243333] text-primary-mint border border-emerald-500/30 font-semibold py-4.5 px-8 rounded-xl transition-all duration-200 text-center flex items-center justify-center gap-2 hover:scale-[1.02] text-base"
+          >
+            <User className="w-5 h-5 text-primary-mint" />
+            <span>Try as Guest</span>
+          </button>
+        </div>
+
+        {/* Quick Metrics */}
+        <div className="grid grid-cols-3 gap-8 sm:gap-16 border-t border-white/10 pt-10 w-full max-w-xl justify-center">
+          <div>
+            <p className="text-xl sm:text-2xl font-bold font-nura text-primary-mint">Real-time</p>
+            <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">WebSockets</p>
+          </div>
+          <div>
+            <p className="text-xl sm:text-2xl font-bold font-nura text-primary-mint">100%</p>
+            <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Self-Hosted</p>
+          </div>
+          <div>
+            <p className="text-xl sm:text-2xl font-bold font-nura text-primary-mint">Zero</p>
+            <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Ad Trackers</p>
           </div>
         </div>
 
       </section>
 
-      {/* 4. Features Section with Interactive Screenshot Switcher */}
+      {/* 4. Features Section (Clean Card Grid) */}
       <section id="features" className="relative z-10 py-20 bg-[#0F1C1C]/50 border-y border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-20">
             <h2 className="text-xs uppercase font-extrabold text-primary-mint tracking-widest mb-3">Product capabilities</h2>
             <p className="text-3xl sm:text-4xl font-extrabold font-nura mb-4">Everything your community needs.</p>
             <p className="text-slate-400 font-light text-base sm:text-lg">
@@ -424,87 +376,71 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
-            {/* Left Column: Interactive Feature List */}
-            <div className="lg:col-span-5 flex flex-col gap-4">
-              {FEATURES.map((feat) => {
+          {/* Features Cards Grid Layout */}
+          <div className="flex flex-col gap-8">
+            {/* Top 3 primary features */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {FEATURES.slice(0, 3).map((feat) => {
                 const FeatIcon = feat.icon;
-                const isSelected = feat.id === activeFeature;
                 return (
-                  <button
+                  <div 
                     key={feat.id}
-                    onClick={() => setActiveFeature(feat.id)}
-                    className={`text-left p-5 rounded-2xl border transition-all duration-300 flex items-start gap-4 ${
-                      isSelected 
-                        ? "bg-[#1A2828] border-emerald-500/30 shadow-lg translate-x-1" 
-                        : "bg-[#1A2828]/20 border-white/5 hover:border-emerald-500/15 hover:bg-[#1A2828]/40"
-                    }`}
+                    className="bg-[#1A2828]/40 border border-white/5 p-8 rounded-2xl hover:border-emerald-500/20 hover:bg-[#1A2828]/60 transition-all duration-300 group hover:-translate-y-1"
                   >
-                    <div className={`p-3 rounded-xl border shrink-0 transition-transform duration-300 ${
-                      isSelected ? "bg-emerald-500/15 border-emerald-500/30 scale-105" : "bg-[#0F1C1C] border-white/5"
-                    }`}>
-                      <FeatIcon className={`w-6 h-6 ${isSelected ? "text-primary-mint" : "text-slate-400"}`} />
+                    <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6 border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                      <FeatIcon className="w-6 h-6 text-primary-mint" />
                     </div>
-                    <div>
-                      <h3 className={`text-lg font-bold mb-1 font-nura transition-colors ${
-                        isSelected ? "text-primary-mint" : "text-white"
-                      }`}>
-                        {feat.title}
-                      </h3>
-                      <p className="text-slate-400 text-xs font-light leading-relaxed">
-                        {feat.desc}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Right Column: Display screenshot for selected feature */}
-            <div className="lg:col-span-7 w-full flex flex-col">
-              <div className="w-full rounded-2xl border border-white/10 bg-[#1a2828]/60 backdrop-blur-xl overflow-hidden shadow-2xl transition-all duration-500">
-                
-                {/* Browser Window Header */}
-                <div className="px-4 py-3 bg-[#0F1C1C] border-b border-white/5 flex items-center gap-6">
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block" />
-                    <span className="w-3 h-3 rounded-full bg-yellow-500/80 inline-block" />
-                    <span className="w-3 h-3 rounded-full bg-green-500/80 inline-block" />
-                  </div>
-                  <div className="w-full max-w-md bg-[#1A2828] border border-white/5 rounded-md py-1 px-3 text-[10px] text-slate-400 font-mono text-center flex items-center justify-center gap-1 truncate select-none">
-                    <span className="text-emerald-500">🔒 https://</span>nextdoor.website/{selectedFeature.id}
-                  </div>
-                </div>
-
-                {/* Selected feature image */}
-                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
-                  <img 
-                    src={selectedFeature.image}
-                    alt={selectedFeature.title}
-                    className="w-full h-full object-cover object-top transition-all duration-500 animate-scale-in"
-                  />
-                  
-                  {/* Bullet overlays on the right panel */}
-                  <div className="absolute bottom-4 left-4 right-4 bg-[#0F1C1C]/90 backdrop-blur-md p-4 rounded-xl border border-white/10 shadow-lg">
-                    <span className="text-[10px] uppercase font-bold text-primary-mint tracking-wider block mb-1">
-                      {selectedFeature.subtitle}
-                    </span>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                      {selectedFeature.bullets.map((bullet, i) => (
-                        <li key={i} className="flex items-center gap-2 text-[11px] text-slate-200">
+                    <h3 className="text-xl font-bold mb-3 font-nura text-white group-hover:text-primary-mint transition-colors">
+                      {feat.title}
+                    </h3>
+                    <p className="text-slate-400 text-sm font-light leading-relaxed mb-6">
+                      {feat.desc}
+                    </p>
+                    <ul className="space-y-2 text-xs text-slate-300">
+                      {feat.bullets.map((bullet, i) => (
+                        <li key={i} className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 bg-primary-mint rounded-full shrink-0" />
                           <span>{bullet}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
-                </div>
-
-              </div>
+                );
+              })}
             </div>
 
+            {/* Bottom 2 auxiliary features */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto w-full">
+              {FEATURES.slice(3, 5).map((feat) => {
+                const FeatIcon = feat.icon;
+                return (
+                  <div 
+                    key={feat.id}
+                    className="bg-[#1A2828]/40 border border-white/5 p-8 rounded-2xl hover:border-emerald-500/20 hover:bg-[#1A2828]/60 transition-all duration-300 group hover:-translate-y-1"
+                  >
+                    <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6 border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                      <FeatIcon className="w-6 h-6 text-primary-mint" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-3 font-nura text-white group-hover:text-primary-mint transition-colors">
+                      {feat.title}
+                    </h3>
+                    <p className="text-slate-400 text-sm font-light leading-relaxed mb-6">
+                      {feat.desc}
+                    </p>
+                    <ul className="space-y-2 text-xs text-slate-300">
+                      {feat.bullets.map((bullet, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-primary-mint rounded-full shrink-0" />
+                          <span>{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
           </div>
+
         </div>
       </section>
 
@@ -515,7 +451,7 @@ export default function HomePage() {
           <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            <div className="lg:col-span-5">
+            <div className="lg:col-span-5 col-span-1">
               <span className="text-xs uppercase font-bold text-primary-mint tracking-widest block mb-3">Privacy First</span>
               <h2 className="text-3xl sm:text-4xl font-extrabold font-nura mb-6 leading-tight">
                 Your community data belongs to your community.
@@ -527,14 +463,14 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button 
                   onClick={redirectToLogin}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
-                  <GoogleIcon />
+                  <GoogleIconWhite />
                   <span>Google Sign In</span>
                 </button>
                 <button 
                   onClick={redirectToGuestLogin}
-                  className="bg-[#1A2828] hover:bg-slate-800 text-primary-mint border border-emerald-500/20 font-semibold py-3 px-8 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
+                  className="bg-[#1A2828] hover:bg-[#243333] text-primary-mint border border-emerald-500/20 font-semibold py-3 px-8 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
                   <User className="w-5 h-5" />
                   <span>Guest Access</span>
@@ -542,7 +478,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="lg:col-span-7 col-span-1 grid grid-cols-1 sm:grid-cols-2 gap-6">
               
               {/* Feature 1 */}
               <div className="bg-[#0F1C1C]/60 p-6 rounded-2xl border border-white/5">
@@ -645,12 +581,12 @@ export default function HomePage() {
                 onClick={redirectToLogin}
                 className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm shadow-md hover:shadow-lg inline-flex items-center gap-2"
               >
-                <GoogleIcon />
+                <GoogleIconWhite />
                 <span>Google Sign In</span>
               </button>
               <button 
                 onClick={redirectToGuestLogin}
-                className="bg-[#1A2828] hover:bg-slate-800 text-primary-mint border border-emerald-500/20 font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm inline-flex items-center gap-2"
+                className="bg-[#1A2828] hover:bg-[#243333] text-primary-mint border border-emerald-500/20 font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm inline-flex items-center gap-2"
               >
                 <User className="w-4 h-4" />
                 <span>Guest Access</span>
