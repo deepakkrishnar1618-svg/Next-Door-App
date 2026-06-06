@@ -42,6 +42,18 @@ const FAQ_ITEMS: FAQItem[] = [
     answer: "We use secure, passwordless logins through Google. The first person to sign in with the admin email gets full control to approve or block other members."
   },
   {
+    question: "How does the app protect my privacy?",
+    answer: "Next Door is fully private. We do not track your location, read your messages, or sell your personal details. All chats, listings, and event data are stored on your own self-hosted Supabase database."
+  },
+  {
+    question: "Can external people join my neighborhood group?",
+    answer: "No. Access is controlled by the community administrator. Only users approved by the admin can sign in and participate, ensuring your neighborhood chat remains private."
+  },
+  {
+    question: "Where is my uploaded data and files stored?",
+    answer: "All uploaded photos, document attachments, and user avatars are stored securely in your private Supabase Storage buckets under strict access control rules."
+  },
+  {
     question: "Is there any cost to running this app?",
     answer: "Running Next Door is completely free for most neighborhood groups. It fits entirely within the free tiers of Vercel, Supabase, and Google Cloud."
   }
@@ -98,27 +110,6 @@ const FEATURES: FeatureInfo[] = [
     bullets: ["Apartment and house room numbers", "Real-time online indicators", "Short user biography text"]
   }
 ];
-
-const GoogleIconColored = () => (
-  <svg className="mr-3 h-5 w-5 shrink-0" viewBox="0 0 24 24">
-    <path
-      fill="#EA4335"
-      d="M12 5.04c1.67 0 3.2.58 4.39 1.71l3.27-3.27C17.69 1.54 14.99 1 12 1 7.35 1 3.37 3.67 1.39 7.56l3.86 3c1-2.92 3.73-5.52 6.75-5.52z"
-    />
-    <path
-      fill="#4285F4"
-      d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.76 2.92c2.2-2.03 3.67-5.01 3.67-8.65z"
-    />
-    <path
-      fill="#FBBC05"
-      d="M5.25 14.56c-.24-.72-.38-1.5-.38-2.31s.14-1.59.38-2.31L1.39 6.94C.5 8.71 0 10.7 0 12.8s.5 4.09 1.39 5.86l3.86-3.04z"
-    />
-    <path
-      fill="#34A853"
-      d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.76-2.92c-1.1.74-2.5 1.18-4.2 1.18-3.02 0-5.75-2.6-6.75-5.52l-3.86 3C3.37 20.33 7.35 23 12 23z"
-    />
-  </svg>
-);
 
 const GoogleIconWhite = () => (
   <svg className="mr-3 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -237,16 +228,17 @@ export default function HomePage() {
           <div className="hidden md:flex items-center gap-4">
             <button 
               onClick={redirectToGuestLogin}
-              className="bg-emerald-600/10 hover:bg-emerald-600/20 text-primary-mint border border-emerald-500/30 font-semibold py-2 px-5 rounded-xl transition-all duration-200 text-sm"
+              className="bg-[#1A2828]/30 hover:bg-[#243333]/50 text-primary-mint border border-emerald-500/20 font-semibold py-2 px-5 rounded-xl transition-all duration-200 text-sm h-10 flex items-center justify-center gap-2"
             >
-              Guest Login
+              <User className="w-4 h-4" />
+              <span>Guest Access</span>
             </button>
             <button 
               onClick={redirectToLogin}
-              className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2 px-5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm flex items-center gap-2 group"
+              className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2 px-5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm h-10 flex items-center justify-center gap-2 group"
             >
               <GoogleIconWhite />
-              <span>Sign In</span>
+              <span>Google Sign In</span>
             </button>
           </div>
 
@@ -259,9 +251,9 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Mobile Nav Drawer */}
+        {/* Mobile Nav Drawer (Solid Background) */}
         {mobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 w-full bg-[#021112]/98 backdrop-blur-lg border-b border-white/5 px-6 py-8 flex flex-col gap-6 shadow-2xl animate-in">
+          <div className="md:hidden absolute top-full left-0 w-full bg-[#021112] border-b border-white/5 px-6 py-8 flex flex-col gap-6 shadow-2xl animate-in">
             <a 
               href="#features" 
               onClick={() => setMobileMenuOpen(false)}
@@ -295,33 +287,33 @@ export default function HomePage() {
             <div className="flex flex-col gap-4">
               <button 
                 onClick={redirectToGuestLogin}
-                className="w-full bg-[#1A2828] hover:bg-slate-800 text-primary-mint border border-emerald-500/20 font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                className="w-full bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/20 font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <User className="w-5 h-5" />
-                <span>Try as Guest</span>
+                <span>Guest Access</span>
               </button>
               <button 
                 onClick={redirectToLogin}
                 className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <GoogleIconWhite />
-                <span>Sign in with Google</span>
+                <span>Google Sign In</span>
               </button>
             </div>
           </div>
         )}
       </header>
 
-      {/* 3. Hero Section (Centered & Simplified) */}
-      <section className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 flex flex-col items-center text-center">
+      {/* 3. Hero Section (Left-Aligned, Simple & Responsive) */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 flex flex-col items-start text-left">
         
         <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-primary-mint font-medium text-xs py-1.5 px-3.5 rounded-full mb-8">
           <span className="w-1.5 h-1.5 bg-primary-mint rounded-full animate-ping" />
           <span>Welcome to your Friendly Neighbourhood</span>
         </div>
 
-        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-tight font-nura text-white mb-8 max-w-3xl">
-          A private app for your <span className="bg-gradient-to-r from-primary-mint via-emerald-400 to-teal-400 bg-clip-text text-transparent">neighbourhood.</span>
+        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-tight font-nura text-white mb-8 max-w-4xl">
+          Stay connected with <span className="bg-gradient-to-r from-primary-mint via-emerald-400 to-teal-400 bg-clip-text text-transparent">Everyone</span>
         </h1>
 
         <p className="text-slate-300 text-lg sm:text-xl mb-12 max-w-2xl font-light leading-relaxed">
@@ -329,25 +321,25 @@ export default function HomePage() {
         </p>
 
         {/* Call-to-actions */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto mb-16">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto mb-16">
           <button
             onClick={redirectToLogin}
-            className="w-full sm:w-auto bg-white hover:bg-slate-100 text-slate-950 font-bold py-4.5 px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group hover:scale-[1.02] text-base"
+            className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3.5 px-6 sm:px-8 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base inline-flex items-center justify-center gap-2 hover:scale-[1.01] h-12"
           >
-            <GoogleIconColored />
-            <span>Sign in with Google</span>
+            <GoogleIconWhite />
+            <span>Google Sign In</span>
           </button>
           <button 
             onClick={redirectToGuestLogin}
-            className="w-full sm:w-auto bg-[#1A2828] hover:bg-[#243333] text-primary-mint border border-emerald-500/30 font-semibold py-4.5 px-8 rounded-xl transition-all duration-200 text-center flex items-center justify-center gap-2 hover:scale-[1.02] text-base"
+            className="w-full sm:w-auto bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/30 font-semibold py-3.5 px-6 sm:px-8 rounded-xl transition-all duration-200 text-center inline-flex items-center justify-center gap-2 hover:scale-[1.01] text-sm sm:text-base h-12"
           >
             <User className="w-5 h-5 text-primary-mint" />
-            <span>Try as Guest</span>
+            <span>Guest Access</span>
           </button>
         </div>
 
         {/* Quick Metrics */}
-        <div className="grid grid-cols-3 gap-8 sm:gap-16 border-t border-white/10 pt-10 w-full max-w-xl justify-center">
+        <div className="grid grid-cols-3 gap-6 sm:gap-10 border-t border-white/10 mt-12 pt-8 w-full max-w-md text-left">
           <div>
             <p className="text-xl sm:text-2xl font-bold font-nura text-primary-mint">Real-time</p>
             <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">WebSockets</p>
@@ -463,14 +455,14 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button 
                   onClick={redirectToLogin}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto h-12 text-sm sm:text-base"
                 >
                   <GoogleIconWhite />
                   <span>Google Sign In</span>
                 </button>
                 <button 
                   onClick={redirectToGuestLogin}
-                  className="bg-[#1A2828] hover:bg-[#243333] text-primary-mint border border-emerald-500/20 font-semibold py-3 px-8 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
+                  className="bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/30 font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto h-12 text-sm sm:text-base"
                 >
                   <User className="w-5 h-5" />
                   <span>Guest Access</span>
@@ -574,19 +566,19 @@ export default function HomePage() {
 
           <div className="bg-[#1A2828]/30 border border-emerald-500/20 rounded-2xl p-6 text-center mt-12">
             <p className="text-slate-300 text-sm font-light">
-              Ready to explore? Try signing in to view the demo dashboard.
+              Ready to explore? Try signing in to view the demo.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
               <button 
                 onClick={redirectToLogin}
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm shadow-md hover:shadow-lg inline-flex items-center gap-2"
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm shadow-md hover:shadow-lg inline-flex items-center gap-2 h-10"
               >
                 <GoogleIconWhite />
                 <span>Google Sign In</span>
               </button>
               <button 
                 onClick={redirectToGuestLogin}
-                className="bg-[#1A2828] hover:bg-[#243333] text-primary-mint border border-emerald-500/20 font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm inline-flex items-center gap-2"
+                className="bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/20 font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm inline-flex items-center gap-2 h-10"
               >
                 <User className="w-4 h-4" />
                 <span>Guest Access</span>
