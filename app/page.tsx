@@ -304,77 +304,118 @@ export default function HomePage() {
         )}
       </header>
 
-      {/* 3. Hero Section (Left-Aligned, Simple & Responsive) */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 flex flex-col items-start text-left">
-        
-        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-primary-mint font-medium text-xs py-1.5 px-3.5 rounded-full mb-8">
-          <span className="w-1.5 h-1.5 bg-primary-mint rounded-full animate-ping" />
-          <span>Stay always connected</span>
-        </div>
+      {/* 3. Hero Section (Two-Column, Responsive) */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-28">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
-        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-tight font-nura text-white mb-8 max-w-4xl">
-          Welcome to your Friendly <span className="bg-gradient-to-r from-primary-mint via-emerald-400 to-teal-400 bg-clip-text text-transparent">Neighbourhood</span>
-        </h1>
-
-        <p className="text-slate-300 text-lg sm:text-xl mb-12 max-w-2xl font-light leading-relaxed">
-          Connect with your apartment building, street, or local group. Chat in real time, organize events, and buy, sell, or rent items, all in one secure, private place.
-        </p>
-
-        {/* Call-to-actions */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto mb-16">
-          <button
-            onClick={redirectToLogin}
-            className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3.5 px-6 sm:px-8 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base inline-flex items-center justify-center gap-2 hover:scale-[1.01] h-12"
-          >
-            <GoogleIconWhite />
-            <span>Google Sign In</span>
-          </button>
-          <button 
-            onClick={redirectToGuestLogin}
-            className="w-full sm:w-auto bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/30 font-semibold py-3.5 px-6 sm:px-8 rounded-xl transition-all duration-200 text-center inline-flex items-center justify-center gap-2 hover:scale-[1.01] text-sm sm:text-base h-12"
-          >
-            <User className="w-5 h-5 text-primary-mint" />
-            <span>Guest Access</span>
-          </button>
-        </div>
-
-        {/* Live neighbourhood conversation — animated preview */}
-        <div className="w-full max-w-md mt-4 animate-float">
-          <div className="flex flex-col gap-3">
-            {/* Incoming message */}
-            <div className="flex items-end gap-2.5 animate-fade-up" style={{ animationDelay: '200ms' }}>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">A</div>
-              <div className="bg-[#1A2828]/70 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm text-slate-200 shadow-soft-dark">
-                Anyone free for the street clean-up Saturday? 🧹
-              </div>
+          {/* Left column — copy & CTAs */}
+          <div className="flex flex-col items-start text-left">
+            <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-primary-mint font-medium text-xs py-1.5 px-3.5 rounded-full mb-8">
+              <span className="w-1.5 h-1.5 bg-primary-mint rounded-full animate-ping" />
+              <span>Stay always connected</span>
             </div>
-            {/* Your reply */}
-            <div className="flex items-end gap-2.5 flex-row-reverse animate-fade-up" style={{ animationDelay: '1000ms' }}>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-mint to-emerald-500 flex items-center justify-center text-[10px] font-bold text-slate-900 shrink-0">You</div>
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl rounded-br-sm px-4 py-2.5 text-sm text-white shadow-soft-dark">
-                Count me in! I&apos;ll bring bags 👍
-              </div>
+
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[3.4rem] xl:text-6xl font-extrabold tracking-tight leading-[1.1] font-nura text-white mb-6">
+              Welcome to your Friendly <span className="bg-gradient-to-r from-primary-mint via-emerald-400 to-teal-400 bg-clip-text text-transparent">Neighbourhood</span>
+            </h1>
+
+            <p className="text-slate-300 text-lg sm:text-xl mb-10 max-w-xl font-light leading-relaxed">
+              Connect with your apartment building, street, or local group. Chat in real time, organize events, and buy, sell, or rent items, all in one secure, private place.
+            </p>
+
+            {/* Call-to-actions */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+              <button
+                onClick={redirectToLogin}
+                className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3.5 px-6 sm:px-8 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base inline-flex items-center justify-center gap-2 hover:scale-[1.01] h-12 whitespace-nowrap"
+              >
+                <GoogleIconWhite />
+                <span>Google Sign In</span>
+              </button>
+              <button
+                onClick={redirectToGuestLogin}
+                className="w-full sm:w-auto bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/30 font-semibold py-3.5 px-6 sm:px-8 rounded-xl transition-all duration-200 text-center inline-flex items-center justify-center gap-2 hover:scale-[1.01] text-sm sm:text-base h-12 whitespace-nowrap"
+              >
+                <User className="w-5 h-5 text-primary-mint shrink-0" />
+                <span>Guest Access</span>
+              </button>
             </div>
-            {/* Typing indicator */}
-            <div className="flex items-end gap-2.5 animate-fade-up" style={{ animationDelay: '1800ms' }}>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">M</div>
-              <div className="bg-[#1A2828]/70 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-3.5 flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-1" />
-                <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-2" />
-                <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-3" />
+          </div>
+
+          {/* Right column — animated app-window preview */}
+          <div className="relative w-full max-w-md mx-auto lg:max-w-none lg:mx-0">
+            {/* ambient glow */}
+            <div className="absolute -inset-6 bg-gradient-to-tr from-emerald-500/20 via-teal-500/10 to-transparent rounded-[2.5rem] blur-3xl pointer-events-none" />
+
+            <div className="relative animate-float rounded-2xl border border-white/10 bg-[#0F1C1C]/90 backdrop-blur-xl shadow-2xl overflow-hidden">
+              {/* Window title bar */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-[#1A2828]/60">
+                <span className="w-3 h-3 rounded-full bg-[#FF5A5F]/80" />
+                <span className="w-3 h-3 rounded-full bg-[#F4D35E]/80" />
+                <span className="w-3 h-3 rounded-full bg-[#38EB91]/80" />
+                <div className="flex items-center gap-2 ml-3 min-w-0">
+                  <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-[10px] font-bold text-slate-900 shrink-0">N</div>
+                  <div className="leading-tight min-w-0">
+                    <p className="text-xs font-semibold text-white truncate">Maple Street</p>
+                    <p className="text-[10px] text-emerald-400 truncate">Neighbourhood chat</p>
+                  </div>
+                </div>
+                <div className="ml-auto flex items-center gap-1.5 text-[10px] text-slate-400 shrink-0">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-mint opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-mint" />
+                  </span>
+                  <span>3 online</span>
+                </div>
+              </div>
+
+              {/* Chat body */}
+              <div className="p-4 sm:p-5 flex flex-col gap-3 min-h-[300px]">
+                {/* Incoming message */}
+                <div className="flex items-end gap-2.5 animate-fade-up" style={{ animationDelay: '300ms' }}>
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">A</div>
+                  <div className="bg-[#1A2828]/80 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm text-slate-200 max-w-[80%]">
+                    Anyone free for the street clean-up Saturday? 🧹
+                  </div>
+                </div>
+                {/* Your reply */}
+                <div className="flex items-end gap-2.5 flex-row-reverse animate-fade-up" style={{ animationDelay: '1100ms' }}>
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-mint to-emerald-500 flex items-center justify-center text-[10px] font-bold text-slate-900 shrink-0">You</div>
+                  <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl rounded-br-sm px-4 py-2.5 text-sm text-white max-w-[80%]">
+                    Count me in! I&apos;ll bring bags 👍
+                  </div>
+                </div>
+                {/* Second incoming */}
+                <div className="flex items-end gap-2.5 animate-fade-up" style={{ animationDelay: '1900ms' }}>
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">J</div>
+                  <div className="bg-[#1A2828]/80 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm text-slate-200 max-w-[80%]">
+                    Same here — see everyone at 10am ☀️
+                  </div>
+                </div>
+                {/* Typing indicator */}
+                <div className="flex items-end gap-2.5 animate-fade-up" style={{ animationDelay: '2700ms' }}>
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">M</div>
+                  <div className="bg-[#1A2828]/80 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-3.5 flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-1" />
+                    <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-2" />
+                    <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-3" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Composer (decorative) */}
+              <div className="px-4 py-3 border-t border-white/5 bg-[#1A2828]/40 flex items-center gap-2">
+                <div className="flex-1 h-9 rounded-full bg-[#0F1C1C]/80 border border-white/5 px-4 flex items-center text-xs text-slate-500 truncate">
+                  Message your neighbours…
+                </div>
+                <div className="w-9 h-9 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center justify-center shrink-0">
+                  <ArrowRight className="w-4 h-4 text-white" />
+                </div>
               </div>
             </div>
           </div>
-          {/* Live presence */}
-          <div className="flex items-center gap-2 mt-5 ml-1 text-xs text-slate-400 font-medium">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-mint opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-mint" />
-            </span>
-            <span>3 neighbours active now</span>
-          </div>
-        </div>
 
+        </div>
       </section>
 
       {/* 4. Features Section (Clean Card Grid) */}
