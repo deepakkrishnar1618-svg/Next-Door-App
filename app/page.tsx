@@ -309,11 +309,11 @@ export default function HomePage() {
         
         <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-primary-mint font-medium text-xs py-1.5 px-3.5 rounded-full mb-8">
           <span className="w-1.5 h-1.5 bg-primary-mint rounded-full animate-ping" />
-          <span>Welcome to your Friendly Neighbourhood</span>
+          <span>Stay always connected</span>
         </div>
 
         <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-tight font-nura text-white mb-8 max-w-4xl">
-          Stay connected with <span className="bg-gradient-to-r from-primary-mint via-emerald-400 to-teal-400 bg-clip-text text-transparent">Everyone</span>
+          Welcome to your Friendly <span className="bg-gradient-to-r from-primary-mint via-emerald-400 to-teal-400 bg-clip-text text-transparent">Neighbourhood</span>
         </h1>
 
         <p className="text-slate-300 text-lg sm:text-xl mb-12 max-w-2xl font-light leading-relaxed">
@@ -338,19 +338,40 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Quick Metrics */}
-        <div className="grid grid-cols-3 gap-6 sm:gap-10 border-t border-white/10 mt-12 pt-8 w-full max-w-md text-left">
-          <div>
-            <p className="text-xl sm:text-2xl font-bold font-nura text-primary-mint">Real-time</p>
-            <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">WebSockets</p>
+        {/* Live neighbourhood conversation — animated preview */}
+        <div className="w-full max-w-md mt-4 animate-float">
+          <div className="flex flex-col gap-3">
+            {/* Incoming message */}
+            <div className="flex items-end gap-2.5 animate-fade-up" style={{ animationDelay: '200ms' }}>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">A</div>
+              <div className="bg-[#1A2828]/70 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm text-slate-200 shadow-soft-dark">
+                Anyone free for the street clean-up Saturday? 🧹
+              </div>
+            </div>
+            {/* Your reply */}
+            <div className="flex items-end gap-2.5 flex-row-reverse animate-fade-up" style={{ animationDelay: '1000ms' }}>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-mint to-emerald-500 flex items-center justify-center text-[10px] font-bold text-slate-900 shrink-0">You</div>
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl rounded-br-sm px-4 py-2.5 text-sm text-white shadow-soft-dark">
+                Count me in! I&apos;ll bring bags 👍
+              </div>
+            </div>
+            {/* Typing indicator */}
+            <div className="flex items-end gap-2.5 animate-fade-up" style={{ animationDelay: '1800ms' }}>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">M</div>
+              <div className="bg-[#1A2828]/70 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-3.5 flex items-center gap-1.5">
+                <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-1" />
+                <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-2" />
+                <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-3" />
+              </div>
+            </div>
           </div>
-          <div>
-            <p className="text-xl sm:text-2xl font-bold font-nura text-primary-mint">100%</p>
-            <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Self-Hosted</p>
-          </div>
-          <div>
-            <p className="text-xl sm:text-2xl font-bold font-nura text-primary-mint">Zero</p>
-            <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Ad Trackers</p>
+          {/* Live presence */}
+          <div className="flex items-center gap-2 mt-5 ml-1 text-xs text-slate-400 font-medium">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-mint opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-mint" />
+            </span>
+            <span>3 neighbours active now</span>
           </div>
         </div>
 
@@ -453,18 +474,18 @@ export default function HomePage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <button 
+                <button
                   onClick={redirectToLogin}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto h-12 text-sm sm:text-base"
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto h-12 text-sm sm:text-base whitespace-nowrap shrink-0"
                 >
                   <GoogleIconWhite />
                   <span>Google Sign In</span>
                 </button>
-                <button 
+                <button
                   onClick={redirectToGuestLogin}
-                  className="bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/30 font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto h-12 text-sm sm:text-base"
+                  className="bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/30 font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto h-12 text-sm sm:text-base whitespace-nowrap shrink-0"
                 >
-                  <User className="w-5 h-5" />
+                  <User className="w-5 h-5 shrink-0" />
                   <span>Guest Access</span>
                 </button>
               </div>

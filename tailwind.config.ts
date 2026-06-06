@@ -59,8 +59,12 @@ const config: Config = {
         'bounce-dot-3': 'bounceDot 1.4s ease-in-out 0.4s infinite',
         'pulse-slow': 'pulseSlow 3s ease-in-out infinite',
         'shake': 'shake 300ms ease-in-out',
+        'float': 'float 6s ease-in-out infinite',
+        'fade-up': 'fadeUp 600ms cubic-bezier(0.22, 1, 0.36, 1) both',
       },
       keyframes: {
+        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+        fadeUp: { '0%': { opacity: '0', transform: 'translateY(18px) scale(0.98)' }, '100%': { opacity: '1', transform: 'translateY(0) scale(1)' } },
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
         scaleIn: { '0%': { transform: 'scale(0.9)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } },
         slideInRight: { '0%': { transform: 'translateX(100%)', opacity: '0' }, '100%': { transform: 'translateX(0)', opacity: '1' } },
