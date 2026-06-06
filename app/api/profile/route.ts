@@ -13,10 +13,11 @@ export async function GET() {
   const supabase = await createClient();
   const { data: { user: authUser } } = await supabase.auth.getUser();
   const userEmail = authUser?.email || null;
+  const isAnonymous = authUser?.is_anonymous ?? false;
 
   let result;
   try {
-    result = await bootstrapUser(userId, userEmail);
+    result = await bootstrapUser(userId, userEmail, { isAnonymous });
   } catch {
     return error('Failed to create user record', 500);
   }

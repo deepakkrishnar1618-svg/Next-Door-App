@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
   is_online BOOLEAN DEFAULT false,
   is_active INTEGER DEFAULT 1,
   is_deleted BOOLEAN DEFAULT false,
+  is_guest BOOLEAN DEFAULT false,
   profile_completed BOOLEAN DEFAULT false,
   last_seen_at TIMESTAMPTZ,
   last_read_message_id INTEGER,
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active);
+CREATE INDEX IF NOT EXISTS idx_users_is_guest ON users(is_guest);
 
 -- ============================================================================
 -- MESSAGES

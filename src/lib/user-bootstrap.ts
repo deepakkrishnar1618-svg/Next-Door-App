@@ -6,17 +6,28 @@ export type BootstrapResult =
   | { status: 'ok'; user: Record<string, any> }
   | { status: 'blocked' };
 
+export interface BootstrapOptions {
+  /** True when the Supabase auth user is anonymous (Guest Access). */
+  isAnonymous?: boolean;
+}
+
 /**
  * Ensure an app `users` row exists for the authenticated Supabase user and
  * return it (or signal that the account is blocked).
  *
  * Shared by /api/profile (GET) and the OAuth callback route so the user
  * creation / blocked / deleted-reset logic lives in exactly one place.
+ *
+ * Anonymous (guest) users get an auto-generated identity and a completed
+ * profile so they skip /profile/setup and drop straight into the app. They are
+ * flagged is_guest so /api/cron/purge-guests can clean them up later.
  */
 export async function bootstrapUser(
   userId: string,
-  userEmail: string | null
+  userEmail: string | null,
+  opts: BootstrapOptions = {}
 ): Promise<BootstrapResult> {
+  const { isAnonymous = false } = opts;
   const db = getServiceClient();
 
   let { data: dbUser } = await db.from('users').select('*').eq('id', userId).single();
@@ -42,14 +53,30 @@ export async function bootstrapUser(
       }
     }
 
-    await db.from('users').insert({
-      id: userId,
-      email: userEmail,
-      is_admin: isAdmin,
-      is_active: 1,
-      is_online: true,
-      profile_completed: false,
-    });
+    if (isAnonymous) {
+      // Guest: auto-generate an identity and mark the profile complete so they
+      // bypass /profile/setup and go straight into the app.
+      await db.from('users').insert({
+        id: userId,
+        email: null,
+        is_admin: false,
+        is_active: 1,
+        is_online: true,
+        is_guest: true,
+        name: `Guest ${Math.floor(1000 + Math.random() * 9000)}`,
+        room_number: 'Visitor',
+        profile_completed: true,
+      });
+    } else {
+      await db.from('users').insert({
+        id: userId,
+        email: userEmail,
+        is_admin: isAdmin,
+        is_active: 1,
+        is_online: true,
+        profile_completed: false,
+      });
+    }
 
     const { data: newUser } = await db.from('users').select('*').eq('id', userId).single();
     dbUser = newUser;
