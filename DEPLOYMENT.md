@@ -25,7 +25,7 @@ ON CONFLICT (setting_key) DO NOTHING;
 
 ## cron-job.org Setup
 
-Create **2 jobs** at https://cron-job.org:
+Create **3 jobs** at https://cron-job.org:
 
 ### Job 1 — Cleanup (events + announcements)
 
@@ -52,6 +52,19 @@ Handles:
 The handler uses a **smart schedule check** — only sends when current UK day/time matches the configured schedule and email hasn't already been sent today.
 
 Configure the schedule in **Admin Settings → Email Notifications → Send Schedule**.
+
+### Job 3 — Purge guests (anonymous accounts)
+
+| Field | Value |
+|---|---|
+| URL | `https://next-door-app-three.vercel.app/api/cron/purge-guests` |
+| Schedule | Once a day (e.g. 04:00) |
+| Method | POST |
+| Header | `x-webhook-secret: <CRON_WEBHOOK_SECRET value>` |
+
+Deletes guest (anonymous) accounts older than `GUEST_TTL_HOURS` (default `24`):
+their content, their `users` row, and the underlying anonymous auth user (frees
+Supabase MAU). Healthy response: `{"success":true,"purged":N,"ttl_hours":24}`.
 
 ## Vercel
 

@@ -168,14 +168,15 @@ Or connect the repo in the Vercel dashboard and set the environment variables th
 
 ### 6. Set up cron jobs (optional — for email digest + cleanup)
 
-Create two jobs at [cron-job.org](https://cron-job.org):
+Create three jobs at [cron-job.org](https://cron-job.org):
 
 | Job | URL | Schedule | Method | Header |
 |---|---|---|---|---|
 | Cleanup | `https://your-domain.com/api/cron/cleanup` | Every 15 min | POST | `x-webhook-secret: <your secret>` |
 | Email digest | `https://your-domain.com/api/cron` | Every 15 min | POST | `x-webhook-secret: <your secret>` |
+| Purge guests | `https://your-domain.com/api/cron/purge-guests` | Once a day | POST | `x-webhook-secret: <your secret>` |
 
-The email digest handler checks the admin-configured schedule internally — running the cron every 15 minutes is safe.
+The email digest handler checks the admin-configured schedule internally — running the cron every 15 minutes is safe. Purge guests removes anonymous (Guest Access) accounts older than `GUEST_TTL_HOURS` (default 24).
 
 ---
 
