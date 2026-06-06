@@ -15,25 +15,33 @@ export async function GET() {
   // Get the Supabase auth user to obtain their email for first-time upsert
   const supabase = await createClient();
   const { data: { user: authUser } } = await supabase.auth.getUser();
-  const userEmail = authUser?.email || '';
+  const userEmail = authUser?.email || null;
 
   let { data: dbUser } = await db.from('users').select('*').eq('id', userId).single();
 
   if (!dbUser) {
     // First login — create the user record automatically.
     // /api/sessions is called separately but may not have run yet with implicit flow.
-    const isAdmin = userEmail === ADMIN_EMAIL;
+    const isAdmin = userEmail ? userEmail === ADMIN_EMAIL : false;
 
-    // Check for a previously deleted account with the same email
-    const { data: deletedUser } = await db
-      .from('users').select('id').eq('email', userEmail).eq('is_deleted', true).maybeSingle();
+    // Check for a previously deleted account with the same email (only if email is provided)
+    let deletedUser = null;
+    if (userEmail) {
+      const { data } = await db
+        .from('users').select('id').eq('email', userEmail).eq('is_deleted', true).maybeSingle();
+      deletedUser = data;
+    }
     if (deletedUser) {
       await db.from('users').update({ email: null }).eq('id', deletedUser.id);
     }
 
-    // Check if blocked
-    const { data: blockedUser } = await db
-      .from('users').select('id, is_deleted').eq('email', userEmail).eq('is_active', 0).maybeSingle();
+    // Check if blocked (only if email is provided)
+    let blockedUser = null;
+    if (userEmail) {
+      const { data } = await db
+        .from('users').select('id, is_deleted').eq('email', userEmail).eq('is_active', 0).maybeSingle();
+      blockedUser = data;
+    }
     if (blockedUser && !blockedUser.is_deleted) {
       return error('Your account has been blocked', 403);
     }

@@ -15,6 +15,7 @@ interface AuthContextType {
   user: User | null;
   isPending: boolean;
   redirectToLogin: () => Promise<void>;
+  redirectToGuestLogin: () => Promise<void>;
   exchangeCodeForSessionToken: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -54,6 +55,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const redirectToGuestLogin = async () => {
+    const { error } = await supabase.auth.signInAnonymously();
+    if (error) {
+      console.error("Anonymous auth error:", error.message);
+      alert("Guest login is not available. Please sign in with Google.");
+    }
+  };
+
   const exchangeCodeForSessionToken = async () => {
     // In Supabase SSR, the callback route handles the exchange.
     // This is called from AuthCallbackPage and is a no-op client-side
@@ -68,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isPending, redirectToLogin, exchangeCodeForSessionToken, signOut }}>
+    <AuthContext.Provider value={{ user, isPending, redirectToLogin, redirectToGuestLogin, exchangeCodeForSessionToken, signOut }}>
       {children}
     </AuthContext.Provider>
   );
