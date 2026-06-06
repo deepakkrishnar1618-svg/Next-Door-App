@@ -234,13 +234,22 @@ export default function HomePage() {
             <a href="#features" className="hover:text-primary-mint transition-colors duration-200">Features</a>
             <a href="#security" className="hover:text-primary-mint transition-colors duration-200">Privacy & Security</a>
             <a href="#faq" className="hover:text-primary-mint transition-colors duration-200">FAQ</a>
-            <a 
-              href="https://github.com/deepakkrishnar1618-svg/Next-Door-App" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href="https://github.com/deepakkrishnar1618-svg/Next-Door-App"
+              target="_blank"
+              rel="noopener noreferrer"
               className="hover:text-primary-mint transition-colors duration-200 flex items-center gap-1"
             >
               GitHub
+            </a>
+            <a
+              href={EXPLORE_MORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-primary-mint transition-colors duration-200 flex items-center gap-1"
+            >
+              <span>Explore more products</span>
+              <ArrowUpRight className="w-4 h-4 shrink-0" />
             </a>
           </nav>
 
@@ -257,32 +266,21 @@ export default function HomePage() {
               </button>
 
               {signInMenuOpen && (
-                <div className="absolute right-0 mt-2 w-60 bg-[#0F1C1C] border border-white/10 rounded-2xl shadow-2xl p-2 z-50 animate-in">
+                <div className="absolute right-0 mt-2 w-60 bg-[#0F1C1C] border border-white/10 rounded-2xl shadow-2xl p-2 z-50 animate-in flex flex-col gap-1.5">
                   <button
                     onClick={() => { setSignInMenuOpen(false); redirectToLogin(); }}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-white hover:bg-[#1A2828] transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 transition-all"
                   >
                     <GoogleIconWhite />
                     <span>Sign in with Google</span>
                   </button>
                   <button
                     onClick={() => { setSignInMenuOpen(false); redirectToGuestLogin(); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-primary-mint hover:bg-[#1A2828] transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
                   >
                     <User className="w-5 h-5 shrink-0" />
                     <span>Guest Access</span>
                   </button>
-                  <div className="my-1.5 h-px bg-white/5" />
-                  <a
-                    href={EXPLORE_MORE_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => setSignInMenuOpen(false)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-300 hover:bg-[#1A2828] hover:text-white transition-colors"
-                  >
-                    <ArrowUpRight className="w-5 h-5 shrink-0" />
-                    <span>Explore more products</span>
-                  </a>
                 </div>
               )}
             </div>
@@ -341,19 +339,19 @@ export default function HomePage() {
             </a>
             <hr className="border-white/5 my-2" />
             <div className="flex flex-col gap-4">
-              <button 
-                onClick={redirectToGuestLogin}
-                className="w-full bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/20 font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                <User className="w-5 h-5" />
-                <span>Guest Access</span>
-              </button>
-              <button 
+              <button
                 onClick={redirectToLogin}
                 className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <GoogleIconWhite />
                 <span>Google Sign In</span>
+              </button>
+              <button
+                onClick={redirectToGuestLogin}
+                className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/10 font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <User className="w-5 h-5" />
+                <span>Guest Access</span>
               </button>
             </div>
           </div>
@@ -379,8 +377,8 @@ export default function HomePage() {
               Connect with your apartment building, street, or local group. Chat in real time, organize events, and buy, sell, or rent items, all in one secure, private place.
             </p>
 
-            {/* Call-to-actions */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+            {/* Call-to-actions — Guest left / Google right on desktop; Google on top on mobile */}
+            <div className="flex flex-col-reverse sm:flex-row items-center gap-4 w-full sm:w-auto">
               <button
                 onClick={redirectToGuestLogin}
                 className="w-full sm:w-auto bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/30 font-semibold py-3.5 px-6 sm:px-8 rounded-xl transition-all duration-200 text-center inline-flex items-center justify-center gap-2 hover:scale-[1.01] text-sm sm:text-base h-12 whitespace-nowrap"
@@ -722,17 +720,17 @@ export default function HomePage() {
             <p className="text-slate-300 text-sm font-light">
               Ready to explore? Try signing in to view the demo.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-4 mt-4">
               <button
                 onClick={redirectToGuestLogin}
-                className="bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/20 font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm inline-flex items-center gap-2 h-10"
+                className="w-full sm:w-auto sm:min-w-[180px] bg-white/5 hover:bg-white/10 text-white border border-white/10 font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm inline-flex items-center justify-center gap-2 h-11"
               >
-                <User className="w-4 h-4" />
+                <User className="w-4 h-4 shrink-0" />
                 <span>Guest Access</span>
               </button>
               <button
                 onClick={redirectToLogin}
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm shadow-md hover:shadow-lg inline-flex items-center gap-2 h-10"
+                className="w-full sm:w-auto sm:min-w-[180px] bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm shadow-md hover:shadow-lg inline-flex items-center justify-center gap-2 h-11"
               >
                 <GoogleIconWhite />
                 <span>Google Sign In</span>
