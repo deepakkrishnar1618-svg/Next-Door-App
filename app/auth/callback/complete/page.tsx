@@ -20,8 +20,7 @@ export default function AuthCallbackComplete() {
   useEffect(() => {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { auth: { flowType: 'implicit' } }
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
     let cancelled = false
