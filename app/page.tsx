@@ -14,13 +14,15 @@ import {
   Server, 
   ChevronDown, 
   ChevronUp, 
-  ArrowRight, 
+  ArrowRight,
   Users,
   Settings,
   HelpCircle,
   Menu,
   X,
-  User
+  User,
+  Check,
+  MapPin
 } from "lucide-react";
 
 interface FAQItem {
@@ -357,7 +359,7 @@ export default function HomePage() {
                   <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-[10px] font-bold text-slate-900 shrink-0">N</div>
                   <div className="leading-tight min-w-0">
                     <p className="text-xs font-semibold text-white truncate">Maple Street</p>
-                    <p className="text-[10px] text-emerald-400 truncate">Neighbourhood chat</p>
+                    <p className="text-[10px] text-emerald-400 truncate">Neighbourhood hub</p>
                   </div>
                 </div>
                 <div className="ml-auto flex items-center gap-1.5 text-[10px] text-slate-400 shrink-0">
@@ -369,36 +371,72 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Chat body */}
+              {/* Tab bar — Events highlighted (unique to a neighbourhood app) */}
+              <div className="flex items-center gap-1.5 px-3 pt-3">
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 px-2.5 py-1.5 rounded-lg">
+                  <MessageSquare className="w-3.5 h-3.5" /> Chat
+                </span>
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-primary-mint bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-lg">
+                  <Calendar className="w-3.5 h-3.5" /> Events
+                </span>
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 px-2.5 py-1.5 rounded-lg">
+                  <ShoppingBag className="w-3.5 h-3.5" /> Market
+                </span>
+              </div>
+
+              {/* Body — animated Event + Marketplace cards */}
               <div className="p-4 sm:p-5 flex flex-col gap-3 min-h-[300px]">
-                {/* Incoming message */}
-                <div className="flex items-end gap-2.5 animate-fade-up" style={{ animationDelay: '300ms' }}>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">A</div>
-                  <div className="bg-[#1A2828]/80 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm text-slate-200 max-w-[80%]">
-                    Anyone free for the street clean-up Saturday? 🧹
+
+                {/* Event card */}
+                <div className="animate-fade-up rounded-xl border border-white/10 bg-[#1A2828]/70 overflow-hidden" style={{ animationDelay: '300ms' }}>
+                  <div className="h-16 bg-gradient-to-br from-emerald-500/30 via-teal-500/20 to-cyan-500/10 relative flex items-end px-3 py-2">
+                    <span className="absolute top-2 right-2 text-[9px] font-bold uppercase tracking-wider bg-primary-mint text-slate-900 px-2 py-0.5 rounded-full">Event</span>
+                    <div className="flex items-center gap-1.5 text-[10px] text-white/90 font-medium">
+                      <Calendar className="w-3.5 h-3.5 text-primary-mint shrink-0" />
+                      Sat, 14 Jun · 4:00 PM
+                    </div>
+                  </div>
+                  <div className="p-3">
+                    <p className="text-sm font-bold text-white">Summer Street Block Party 🎉</p>
+                    <div className="flex items-center justify-between mt-2.5">
+                      <div className="flex items-center -space-x-2">
+                        {['from-emerald-400 to-teal-500', 'from-amber-300 to-orange-400', 'from-teal-400 to-cyan-500'].map((g, i) => (
+                          <span key={i} className={`w-6 h-6 rounded-full bg-gradient-to-br ${g} border-2 border-[#1A2828]`} />
+                        ))}
+                        <span className="w-6 h-6 rounded-full bg-[#0F1C1C] border-2 border-[#1A2828] flex items-center justify-center text-[8px] font-bold text-slate-300">+12</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-900 bg-primary-mint px-3 py-1 rounded-full flex items-center gap-1">
+                        Going <Check className="w-3 h-3" strokeWidth={3} />
+                      </span>
+                    </div>
                   </div>
                 </div>
-                {/* Your reply */}
-                <div className="flex items-end gap-2.5 flex-row-reverse animate-fade-up" style={{ animationDelay: '1100ms' }}>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-mint to-emerald-500 flex items-center justify-center text-[10px] font-bold text-slate-900 shrink-0">You</div>
-                  <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl rounded-br-sm px-4 py-2.5 text-sm text-white max-w-[80%]">
-                    Count me in! I&apos;ll bring bags 👍
+
+                {/* Marketplace card */}
+                <div className="animate-fade-up rounded-xl border border-white/10 bg-[#1A2828]/70 p-3 flex items-center gap-3" style={{ animationDelay: '1100ms' }}>
+                  <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-orange-400/30 to-amber-500/20 flex items-center justify-center shrink-0">
+                    <ShoppingBag className="w-6 h-6 text-accent-coral" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-white truncate">Cannondale Bike</p>
+                      <span className="text-[9px] font-bold uppercase bg-emerald-500/15 text-primary-mint px-1.5 py-0.5 rounded shrink-0">For Sale</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 shrink-0" /> Great condition · 2 streets away
+                    </p>
+                    <div className="flex items-center justify-between mt-1.5">
+                      <span className="text-sm font-extrabold text-primary-mint">£120</span>
+                      <span className="text-[10px] text-slate-400">3 interested</span>
+                    </div>
                   </div>
                 </div>
-                {/* Second incoming */}
-                <div className="flex items-end gap-2.5 animate-fade-up" style={{ animationDelay: '1900ms' }}>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">J</div>
-                  <div className="bg-[#1A2828]/80 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm text-slate-200 max-w-[80%]">
-                    Same here — see everyone at 10am ☀️
-                  </div>
-                </div>
-                {/* Typing indicator */}
-                <div className="flex items-end gap-2.5 animate-fade-up" style={{ animationDelay: '2700ms' }}>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">M</div>
-                  <div className="bg-[#1A2828]/80 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-3.5 flex items-center gap-1.5">
-                    <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-1" />
-                    <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-2" />
-                    <span className="w-2 h-2 bg-primary-mint rounded-full animate-bounce-dot-3" />
+
+                {/* Live chat snippet tying it together */}
+                <div className="animate-fade-up flex items-end gap-2.5" style={{ animationDelay: '1900ms' }}>
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-[10px] font-bold text-slate-900 shrink-0">A</div>
+                  <div className="bg-[#1A2828]/80 border border-white/5 rounded-2xl rounded-bl-sm px-3.5 py-2 text-xs text-slate-200 max-w-[80%]">
+                    Selling my bike too — added it to the marketplace! 🚲
                   </div>
                 </div>
               </div>
@@ -406,7 +444,7 @@ export default function HomePage() {
               {/* Composer (decorative) */}
               <div className="px-4 py-3 border-t border-white/5 bg-[#1A2828]/40 flex items-center gap-2">
                 <div className="flex-1 h-9 rounded-full bg-[#0F1C1C]/80 border border-white/5 px-4 flex items-center text-xs text-slate-500 truncate">
-                  Message your neighbours…
+                  Post an event or listing…
                 </div>
                 <div className="w-9 h-9 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center justify-center shrink-0">
                   <ArrowRight className="w-4 h-4 text-white" />

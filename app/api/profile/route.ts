@@ -1,91 +1,28 @@
 import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error, sanitizeHtml } from '@/src/lib/api-helpers';
 import { createClient } from '@/src/lib/supabase/server';
+import { bootstrapUser } from '@/src/lib/user-bootstrap';
 import { buildWelcomeEmail } from '@/src/lib/email-templates';
 import { sendEmail } from '@/src/lib/send-email';
-
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
 
 export async function GET() {
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);
-
-  const db = getServiceClient();
 
   // Get the Supabase auth user to obtain their email for first-time upsert
   const supabase = await createClient();
   const { data: { user: authUser } } = await supabase.auth.getUser();
   const userEmail = authUser?.email || null;
 
-  let { data: dbUser } = await db.from('users').select('*').eq('id', userId).single();
-
-  if (!dbUser) {
-    // First login — create the user record automatically.
-    // /api/sessions is called separately but may not have run yet with implicit flow.
-    const isAdmin = userEmail ? userEmail === ADMIN_EMAIL : false;
-
-    // Check for a previously deleted account with the same email (only if email is provided)
-    let deletedUser = null;
-    if (userEmail) {
-      const { data } = await db
-        .from('users').select('id').eq('email', userEmail).eq('is_deleted', true).maybeSingle();
-      deletedUser = data;
-    }
-    if (deletedUser) {
-      await db.from('users').update({ email: null }).eq('id', deletedUser.id);
-    }
-
-    // Check if blocked (only if email is provided)
-    let blockedUser = null;
-    if (userEmail) {
-      const { data } = await db
-        .from('users').select('id, is_deleted').eq('email', userEmail).eq('is_active', 0).maybeSingle();
-      blockedUser = data;
-    }
-    if (blockedUser && !blockedUser.is_deleted) {
-      return error('Your account has been blocked', 403);
-    }
-
-    await db.from('users').insert({
-      id: userId,
-      email: userEmail,
-      is_admin: isAdmin,
-      is_active: 1,
-      is_online: true,
-      profile_completed: false,
-    });
-
-    const { data: newUser } = await db.from('users').select('*').eq('id', userId).single();
-    dbUser = newUser;
+  let result;
+  try {
+    result = await bootstrapUser(userId, userEmail);
+  } catch {
+    return error('Failed to create user record', 500);
   }
+  if (result.status === 'blocked') return error('Your account has been blocked', 403);
 
-  if (!dbUser) return error('Failed to create user record', 500);
-
-  // Blocked (but not deleted) — reject with 403
-  if (dbUser.is_active === 0 && !dbUser.is_deleted) return error('Your account has been blocked', 403);
-
-  // Deleted user signs back in with same Google account — give them a fresh start
-  if (dbUser.is_deleted) {
-    await db.from('users').update({
-      is_deleted: false,
-      is_active: 1,
-      profile_completed: false,
-      name: null,
-      room_number: null,
-      avatar_url: null,
-      email: userEmail,
-      updated_at: new Date().toISOString(),
-    }).eq('id', userId);
-    const { data: resetUser } = await db.from('users').select('*').eq('id', userId).single();
-    dbUser = resetUser;
-  }
-
-  // Touch online status
-  await db.from('users')
-    .update({ is_online: true, is_active: 1, last_seen_at: new Date().toISOString() })
-    .eq('id', userId);
-
-  return json({ ...dbUser, is_active: 1 });
+  return json(result.user);
 }
 
 // Accept both PUT and PATCH for profile updates

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/src/lib/supabase/server'
+import { bootstrapUser } from '@/src/lib/user-bootstrap'
 
 /**
  * Google OAuth callback (PKCE flow) — server route handler.
@@ -11,11 +12,15 @@ import { createClient } from '@/src/lib/supabase/server'
  * the canonical SSR pattern: it runs exactly once and writes session cookies the
  * server (middleware, /api/profile) can read.
  *
- * The PKCE code verifier was stored as a (non-httpOnly) cookie by the browser
- * client when sign-in started, so it is sent with this request and is readable here.
+ * We also resolve the final destination here — /chat, /profile/setup, or
+ * /blocked — using the service client directly. Previously this was deferred to
+ * a client page that re-checked the session via the browser client, which raced
+ * cookie propagation and intermittently bounced new sign-ins back to the home
+ * page (so a second attempt was needed). Deciding the route server-side, on the
+ * same response that sets the session cookies, removes that race entirely.
  *
- * After a successful exchange we hand off to /auth/callback/complete, which calls
- * /api/profile to route the user to /chat, /profile/setup, or /blocked.
+ * The PKCE code verifier was stored as a (non-httpOnly) cookie by the browser
+ * client when sign-in started, so it is sent with this request and readable here.
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl
@@ -30,12 +35,25 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
-  if (error) {
+  if (error || !data.user) {
     return NextResponse.redirect(`${origin}/?error=exchange`)
   }
 
-  // Session cookies are now set. The completion page decides where to go next.
-  return NextResponse.redirect(`${origin}/auth/callback/complete`)
+  // Session cookies are now set on this response. Resolve where to send the user.
+  let result
+  try {
+    result = await bootstrapUser(data.user.id, data.user.email ?? null)
+  } catch {
+    return NextResponse.redirect(`${origin}/?error=bootstrap`)
+  }
+
+  if (result.status === 'blocked') {
+    return NextResponse.redirect(`${origin}/blocked`)
+  }
+
+  return NextResponse.redirect(
+    `${origin}${result.user.profile_completed ? '/chat' : '/profile/setup'}`
+  )
 }
