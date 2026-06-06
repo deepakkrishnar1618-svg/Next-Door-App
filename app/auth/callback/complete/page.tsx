@@ -29,7 +29,18 @@ export default function AuthCallbackComplete() {
 
     const redirectToApp = async () => {
       try {
-        const { data } = await fetch('/api/profile', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null)
+        const res = await fetch('/api/profile', { credentials: 'include' })
+
+        if (res.status === 403) {
+          // Blocked / deactivated user — sign out and route to /blocked
+          const errData = await res.json().catch(() => ({}))
+          const msg = (errData?.error || '').toLowerCase()
+          await supabase.auth.signOut()
+          router.replace(msg.includes('blocked') || msg.includes('deactivated') ? '/blocked' : '/')
+          return
+        }
+
+        const data = res.ok ? await res.json() : null
         router.replace(data?.profile_completed ? '/chat' : '/profile/setup')
       } catch {
         router.replace('/profile/setup')
