@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/src/lib/auth-hook";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -15,6 +15,7 @@ import {
   ChevronDown, 
   ChevronUp, 
   ArrowRight,
+  ArrowUpRight,
   Users,
   Settings,
   HelpCircle,
@@ -24,6 +25,8 @@ import {
   Check,
   MapPin
 } from "lucide-react";
+
+const EXPLORE_MORE_URL = "https://www.deeproduct.org/";
 
 interface FAQItem {
   question: string;
@@ -128,6 +131,20 @@ export default function HomePage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [signInMenuOpen, setSignInMenuOpen] = useState(false);
+  const signInMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close the Sign In dropdown on outside click
+  useEffect(() => {
+    if (!signInMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (signInMenuRef.current && !signInMenuRef.current.contains(e.target as Node)) {
+        setSignInMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [signInMenuOpen]);
 
   // Handle Supabase manual code forwarding
   useEffect(() => {
@@ -228,20 +245,47 @@ export default function HomePage() {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
-            <button 
-              onClick={redirectToGuestLogin}
-              className="bg-[#1A2828]/30 hover:bg-[#243333]/50 text-primary-mint border border-emerald-500/20 font-semibold py-2 px-5 rounded-xl transition-all duration-200 text-sm h-10 flex items-center justify-center gap-2"
-            >
-              <User className="w-4 h-4" />
-              <span>Guest Access</span>
-            </button>
-            <button 
-              onClick={redirectToLogin}
-              className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2 px-5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm h-10 flex items-center justify-center gap-2 group"
-            >
-              <GoogleIconWhite />
-              <span>Google Sign In</span>
-            </button>
+            <div className="relative" ref={signInMenuRef}>
+              <button
+                onClick={() => setSignInMenuOpen((o) => !o)}
+                aria-haspopup="true"
+                aria-expanded={signInMenuOpen}
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2 pl-5 pr-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm h-10 flex items-center justify-center gap-2"
+              >
+                <span>Sign In</span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${signInMenuOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {signInMenuOpen && (
+                <div className="absolute right-0 mt-2 w-60 bg-[#0F1C1C] border border-white/10 rounded-2xl shadow-2xl p-2 z-50 animate-in">
+                  <button
+                    onClick={() => { setSignInMenuOpen(false); redirectToLogin(); }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-white hover:bg-[#1A2828] transition-colors"
+                  >
+                    <GoogleIconWhite />
+                    <span>Sign in with Google</span>
+                  </button>
+                  <button
+                    onClick={() => { setSignInMenuOpen(false); redirectToGuestLogin(); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-primary-mint hover:bg-[#1A2828] transition-colors"
+                  >
+                    <User className="w-5 h-5 shrink-0" />
+                    <span>Guest Access</span>
+                  </button>
+                  <div className="my-1.5 h-px bg-white/5" />
+                  <a
+                    href={EXPLORE_MORE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setSignInMenuOpen(false)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-300 hover:bg-[#1A2828] hover:text-white transition-colors"
+                  >
+                    <ArrowUpRight className="w-5 h-5 shrink-0" />
+                    <span>Explore more products</span>
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
@@ -277,13 +321,23 @@ export default function HomePage() {
             >
               FAQ
             </a>
-            <a 
-              href="https://github.com/deepakkrishnar1618-svg/Next-Door-App" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href="https://github.com/deepakkrishnar1618-svg/Next-Door-App"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-lg text-slate-300 hover:text-primary-mint transition-colors"
             >
               GitHub Repository
+            </a>
+            <a
+              href={EXPLORE_MORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-lg text-slate-300 hover:text-primary-mint transition-colors flex items-center gap-2"
+            >
+              <span>Explore more products</span>
+              <ArrowUpRight className="w-4 h-4 shrink-0" />
             </a>
             <hr className="border-white/5 my-2" />
             <div className="flex flex-col gap-4">
@@ -328,18 +382,18 @@ export default function HomePage() {
             {/* Call-to-actions */}
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
               <button
-                onClick={redirectToLogin}
-                className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3.5 px-6 sm:px-8 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base inline-flex items-center justify-center gap-2 hover:scale-[1.01] h-12 whitespace-nowrap"
-              >
-                <GoogleIconWhite />
-                <span>Google Sign In</span>
-              </button>
-              <button
                 onClick={redirectToGuestLogin}
                 className="w-full sm:w-auto bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/30 font-semibold py-3.5 px-6 sm:px-8 rounded-xl transition-all duration-200 text-center inline-flex items-center justify-center gap-2 hover:scale-[1.01] text-sm sm:text-base h-12 whitespace-nowrap"
               >
                 <User className="w-5 h-5 text-primary-mint shrink-0" />
                 <span>Guest Access</span>
+              </button>
+              <button
+                onClick={redirectToLogin}
+                className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3.5 px-6 sm:px-8 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base inline-flex items-center justify-center gap-2 hover:scale-[1.01] h-12 whitespace-nowrap"
+              >
+                <GoogleIconWhite />
+                <span>Google Sign In</span>
               </button>
             </div>
           </div>
@@ -554,18 +608,18 @@ export default function HomePage() {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
-                  onClick={redirectToLogin}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto h-12 text-sm sm:text-base whitespace-nowrap shrink-0"
-                >
-                  <GoogleIconWhite />
-                  <span>Google Sign In</span>
-                </button>
-                <button
                   onClick={redirectToGuestLogin}
                   className="bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/30 font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto h-12 text-sm sm:text-base whitespace-nowrap shrink-0"
                 >
                   <User className="w-5 h-5 shrink-0" />
                   <span>Guest Access</span>
+                </button>
+                <button
+                  onClick={redirectToLogin}
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 w-full sm:w-auto h-12 text-sm sm:text-base whitespace-nowrap shrink-0"
+                >
+                  <GoogleIconWhite />
+                  <span>Google Sign In</span>
                 </button>
               </div>
             </div>
@@ -669,23 +723,45 @@ export default function HomePage() {
               Ready to explore? Try signing in to view the demo.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
-              <button 
-                onClick={redirectToLogin}
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm shadow-md hover:shadow-lg inline-flex items-center gap-2 h-10"
-              >
-                <GoogleIconWhite />
-                <span>Google Sign In</span>
-              </button>
-              <button 
+              <button
                 onClick={redirectToGuestLogin}
                 className="bg-[#1A2828]/50 hover:bg-[#243333]/70 text-primary-mint border border-emerald-500/20 font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm inline-flex items-center gap-2 h-10"
               >
                 <User className="w-4 h-4" />
                 <span>Guest Access</span>
               </button>
+              <button
+                onClick={redirectToLogin}
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 text-sm shadow-md hover:shadow-lg inline-flex items-center gap-2 h-10"
+              >
+                <GoogleIconWhite />
+                <span>Google Sign In</span>
+              </button>
             </div>
           </div>
 
+        </div>
+      </section>
+
+      {/* 6b. Explore More Products Card */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="bg-[#0F1C1C]/60 border border-white/10 rounded-[28px] p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <p className="text-xs uppercase font-bold text-slate-400 tracking-widest mb-3">More from us</p>
+            <h3 className="text-2xl sm:text-3xl font-bold font-nura text-white mb-3">Explore more products</h3>
+            <p className="text-slate-400 font-light leading-relaxed max-w-2xl">
+              Next Door is part of a wider family of focused tools built to make your digital life calmer and more organized. Take a look at what else we&apos;re building.
+            </p>
+          </div>
+          <a
+            href={EXPLORE_MORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full md:w-auto shrink-0 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3.5 px-7 rounded-full transition-all duration-200 shadow-lg shadow-orange-500/25 hover:scale-[1.02] whitespace-nowrap"
+          >
+            <span>Explore more products</span>
+            <ArrowUpRight className="w-4 h-4 shrink-0" />
+          </a>
         </div>
       </section>
 
