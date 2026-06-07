@@ -5,14 +5,22 @@
 | Variable | Description |
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-side only) |
-| `NEXT_PUBLIC_APP_URL` | App URL e.g. `https://next-door-app-three.vercel.app` |
-| `RESEND_API_KEY` | Resend API key for email digest |
-| `CRON_WEBHOOK_SECRET` | Shared secret for cron-job.org webhook authentication |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key (safe for the browser) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server side only, store as Sensitive) |
+| `NEXT_PUBLIC_APP_URL` | App URL, for example `https://nextdoor.deeproduct.org` |
+| `ADMIN_EMAIL` | The Google email that becomes admin on first sign in |
+| `RESEND_API_KEY` | Resend API key for the email digest (store as Sensitive) |
+| `CRON_WEBHOOK_SECRET` | Shared secret for cron-job.org webhook authentication (store as Sensitive) |
 
-## Supabase — Required app_settings Rows
+On Vercel, mark the three secret values (`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `CRON_WEBHOOK_SECRET`) as **Sensitive** so they cannot be read back from the dashboard.
 
-Run this SQL once in Supabase SQL Editor:
+## Supabase: required setup
+
+Run these once in the Supabase SQL Editor:
+
+1. `supabase/schema.sql` to create all tables.
+2. `supabase/add-guest-support.sql` to enable Guest Access.
+3. The settings seed below.
 
 ```sql
 INSERT INTO app_settings (setting_key, setting_value) VALUES
@@ -23,49 +31,50 @@ INSERT INTO app_settings (setting_key, setting_value) VALUES
 ON CONFLICT (setting_key) DO NOTHING;
 ```
 
-## cron-job.org Setup
+Then, under Authentication:
 
-Create **3 jobs** at https://cron-job.org:
+- Enable the **Google** provider and add your OAuth Client ID and Secret.
+- Enable **Anonymous sign ins** so Guest Access works.
+- Add your app URL to the Redirect URLs list.
 
-### Job 1 — Cleanup (events + announcements)
+## cron-job.org setup
+
+Create **3 jobs** at https://cron-job.org. Each job sends the header `x-webhook-secret: <CRON_WEBHOOK_SECRET value>`.
+
+### Job 1: Cleanup (events and announcements)
 
 | Field | Value |
 |---|---|
-| URL | `https://next-door-app-three.vercel.app/api/cron/cleanup` |
+| URL | `https://nextdoor.deeproduct.org/api/cron/cleanup` |
 | Schedule | Every 15 minutes |
 | Method | POST |
-| Header | `x-webhook-secret: <CRON_WEBHOOK_SECRET value>` |
 
 Handles:
-- Auto-deletes events that ended more than 24 hours ago
-- Expires stale announcements where `announcement_expires_at < NOW()`
+- Auto-deletes events that ended more than 24 hours ago.
+- Expires stale announcements where `announcement_expires_at < NOW()`.
 
-### Job 2 — Email Digest
+### Job 2: Email digest
 
 | Field | Value |
 |---|---|
-| URL | `https://next-door-app-three.vercel.app/api/cron` |
+| URL | `https://nextdoor.deeproduct.org/api/cron` |
 | Schedule | Every 15 minutes |
 | Method | POST |
-| Header | `x-webhook-secret: <CRON_WEBHOOK_SECRET value>` |
 
-The handler uses a **smart schedule check** — only sends when current UK day/time matches the configured schedule and email hasn't already been sent today.
+The handler runs a smart schedule check, so it only sends when the current UK day and time match the configured schedule and the email has not already gone out today.
 
-Configure the schedule in **Admin Settings → Email Notifications → Send Schedule**.
+Configure the schedule in Admin Settings, Email Notifications, Send Schedule.
 
-### Job 3 — Purge guests (anonymous accounts)
+### Job 3: Purge guests (anonymous accounts)
 
 | Field | Value |
 |---|---|
-| URL | `https://next-door-app-three.vercel.app/api/cron/purge-guests` |
-| Schedule | Once a day (e.g. 04:00) |
+| URL | `https://nextdoor.deeproduct.org/api/cron/purge-guests` |
+| Schedule | Once a day, for example 04:00 |
 | Method | POST |
-| Header | `x-webhook-secret: <CRON_WEBHOOK_SECRET value>` |
 
-Deletes guest (anonymous) accounts older than `GUEST_TTL_HOURS` (default `24`):
-their content, their `users` row, and the underlying anonymous auth user (frees
-Supabase MAU). Healthy response: `{"success":true,"purged":N,"ttl_hours":24}`.
+Deletes Guest Access accounts older than `GUEST_TTL_HOURS` (default `24`): their content, their `users` row, and the underlying anonymous auth user, which frees Supabase MAU. A healthy response looks like `{"success":true,"purged":N,"ttl_hours":24}`.
 
 ## Vercel
 
-`vercel.json` has an empty crons array — all scheduling is handled by cron-job.org.
+`vercel.json` has an empty crons array, so all scheduling is handled by cron-job.org.
