@@ -395,7 +395,7 @@ export default function MessageBubble({
   };
 
   const handleAnnounce = async () => {
-    const hours = prompt('Create announcement — expires in how many hours? (default: 24)', '24');
+    const hours = prompt('Create announcement - expires in how many hours? (default: 24)', '24');
     if (hours === null) return; // user cancelled
     const h = parseInt(hours || '24', 10);
     if (isNaN(h) || h < 1) { alert('Invalid duration'); return; }
@@ -491,7 +491,7 @@ export default function MessageBubble({
     new Date(message.announcement_expires_at as string).getTime() > Date.now();
   const isReminder = (message.is_active_announcement === 1 || message.is_active_announcement === true) && isAnnouncementStillActive;
 
-  // Deleted event/listing card — show bubble-style placeholder matching deleted messages
+  // Deleted event/listing card - show bubble-style placeholder matching deleted messages
   if (isMessageDeleted && (message.event_id || message.listing_id)) {
     // Use content stored at delete-time if available (event/listing already removed from DB)
     const storedContent = message.content && (message.content.includes(' event has been deleted') || message.content.includes(' request has been deleted'))

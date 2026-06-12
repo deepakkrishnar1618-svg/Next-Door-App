@@ -1,7 +1,7 @@
 /**
  * In-memory per-IP rate limiter using a sliding window.
  * NOTE: Resets on server restart and does not share state across
- * Vercel edge instances — sufficient for Hobby plan (single region).
+ * Vercel edge instances - sufficient for Hobby plan (single region).
  */
 
 interface Window {

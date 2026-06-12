@@ -40,7 +40,7 @@ const screens: OnboardingScreen[] = [
   {
     icon: <MessageCircle className="w-16 h-16 text-amber-500" />,
     title: "Dedicated Chat",
-    description: "Each event has its own private chat for participants. Coordinate details, share updates, and connect with attendees — all in one place.",
+    description: "Each event has its own private chat for participants. Coordinate details, share updates, and connect with attendees - all in one place.",
     iconBgColor: "from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30",
   },
   {

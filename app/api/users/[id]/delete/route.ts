@@ -14,7 +14,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   const { data: targetUser } = await db.from('users').select('name, room_number').eq('id', targetId).single();
 
-  // Clean up user associations (but keep messages — anonymized below)
+  // Clean up user associations (but keep messages - anonymized below)
   await db.from('reactions').delete().eq('user_id', targetId);
   await db.from('notifications').delete().or(`user_id.eq.${targetId},mentioned_by_user_id.eq.${targetId}`);
   await db.from('message_reads').delete().eq('user_id', targetId);
@@ -31,7 +31,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     await db.from('events').delete().eq('id', evt.id);
   }
 
-  // Anonymize the user record — keep the row (and user_id FK in messages) intact
+  // Anonymize the user record - keep the row (and user_id FK in messages) intact
   await db.from('users').update({
     name: 'Deleted User',
     email: `deleted_${targetId}@deleted.com`,

@@ -3,7 +3,7 @@ import { createClient } from '@/src/lib/supabase/server'
 import { bootstrapUser } from '@/src/lib/user-bootstrap'
 
 /**
- * Google OAuth callback (PKCE flow) — server route handler.
+ * Google OAuth callback (PKCE flow) - server route handler.
  *
  * Supabase's browser client (@supabase/ssr) forces flowType: "pkce" and
  * detectSessionInUrl: true, and is a cached singleton. Exchanging the code in a
@@ -12,8 +12,8 @@ import { bootstrapUser } from '@/src/lib/user-bootstrap'
  * the canonical SSR pattern: it runs exactly once and writes session cookies the
  * server (middleware, /api/profile) can read.
  *
- * We also resolve the final destination here — /chat, /profile/setup, or
- * /blocked — using the service client directly. Previously this was deferred to
+ * We also resolve the final destination here - /chat, /profile/setup, or
+ * /blocked - using the service client directly. Previously this was deferred to
  * a client page that re-checked the session via the browser client, which raced
  * cookie propagation and intermittently bounced new sign-ins back to the home
  * page (so a second attempt was needed). Deciding the route server-side, on the

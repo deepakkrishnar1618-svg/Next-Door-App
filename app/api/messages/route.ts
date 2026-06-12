@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const groupId = request.nextUrl.searchParams.get('group_id') || 'main';
   const db = getServiceClient();
 
-  // Select messages without FK join — the messages table has no REFERENCES constraint
+  // Select messages without FK join - the messages table has no REFERENCES constraint
   // so Supabase cannot resolve !messages_user_id_fkey and returns an error silently.
   // We join user data manually below.
   let query = db.from('messages').select(

@@ -22,7 +22,7 @@ const screens: OnboardingScreen[] = [
   {
     icon: <Handshake className="w-16 h-16 text-amber-500" />,
     title: "Quick Requests",
-    description: "Need help from your neighbors? Quick Requests lets you ask for anything — borrow a ladder, find a pet sitter, get recommendations, or lend a hand!",
+    description: "Need help from your neighbors? Quick Requests lets you ask for anything - borrow a ladder, find a pet sitter, get recommendations, or lend a hand!",
     iconBgColor: "from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30",
   },
   {

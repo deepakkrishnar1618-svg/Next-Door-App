@@ -16,7 +16,7 @@ export default function AuthCallbackPage() {
         // Only proceed once the auth state has settled
         if (!isPending) {
           if (!user) {
-            // Session cookie was not received — go back to login
+            // Session cookie was not received - go back to login
             router.push("/");
             return;
           }

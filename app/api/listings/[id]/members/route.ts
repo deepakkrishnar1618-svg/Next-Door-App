@@ -33,7 +33,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     });
   }
 
-  // Interested users — batch-fetch instead of FK join
+  // Interested users - batch-fetch instead of FK join
   const { data: interestedRows } = await db
     .from('market_listing_interested')
     .select('user_id')

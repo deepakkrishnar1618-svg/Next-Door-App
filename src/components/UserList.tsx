@@ -281,7 +281,7 @@ export default function UserList({ users, currentUserId, onClose }: UserListProp
         {onlineUsers.length > 0 && (
           <div className="mb-xl">
             <div className="text-sm font-semibold text-success mb-s font-outfit">
-              Online — {onlineUsers.length}
+              Online - {onlineUsers.length}
             </div>
             <div className="space-y-s">
               {onlineUsers.map(user => renderUser(user, isAdmin))}
@@ -292,7 +292,7 @@ export default function UserList({ users, currentUserId, onClose }: UserListProp
         {offlineUsers.length > 0 && (
           <div className="mb-xl">
             <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-s font-outfit">
-              Offline — {offlineUsers.length}
+              Offline - {offlineUsers.length}
             </div>
             <div className="space-y-s">
               {offlineUsers.map(user => renderUser(user, isAdmin))}
@@ -304,7 +304,7 @@ export default function UserList({ users, currentUserId, onClose }: UserListProp
         {deactivatedUsers.length > 0 && (
           <div className="mb-xl">
             <div className="text-sm font-semibold text-error mb-s font-outfit">
-              Deactivated — {deactivatedUsers.length}
+              Deactivated - {deactivatedUsers.length}
             </div>
             <div className="space-y-s">
               {deactivatedUsers.map(user => renderUser(user, isAdmin))}
@@ -316,7 +316,7 @@ export default function UserList({ users, currentUserId, onClose }: UserListProp
         {deletedUsers.length > 0 && (
           <div>
             <div className="text-sm font-semibold text-slate-400 dark:text-slate-500 mb-s font-outfit">
-              Deleted — {deletedUsers.length}
+              Deleted - {deletedUsers.length}
             </div>
             <div className="space-y-s">
               {deletedUsers.map(user => renderUser(user, false))}

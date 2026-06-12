@@ -497,7 +497,7 @@ export default function AdminSettingsModal({ onClose }: AdminSettingsModalProps)
                     const isImage = imageTypes.includes(a.content_type);
                     const thumbnail = isImage && a.file_key && thumbnailCache[a.file_key] 
                       ? `<img src="${thumbnailCache[a.file_key]}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />`
-                      : `<span style="color: #888; font-size: 10px;">${isImage ? 'No preview' : '—'}</span>`;
+                      : `<span style="color: #888; font-size: 10px;">${isImage ? 'No preview' : '-'}</span>`;
                     return `
                     <tr>
                       <td style="text-align: center;">${thumbnail}</td>
@@ -1264,7 +1264,7 @@ export default function AdminSettingsModal({ onClose }: AdminSettingsModalProps)
                       className="px-3 py-2 rounded-button-rect bg-white dark:bg-dark-elevated border-2 border-transparent focus:border-primary-mint outline-none transition-all font-outfit text-slate-800 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <p className="text-xs text-slate-400 dark:text-slate-500 font-outfit mt-1">
-                      UK timezone (GMT/BST) — auto-adjusts for daylight saving
+                      UK timezone (GMT/BST) - auto-adjusts for daylight saving
                     </p>
                   </div>
 
@@ -1426,7 +1426,7 @@ export default function AdminSettingsModal({ onClose }: AdminSettingsModalProps)
               Export User Data
             </h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-m font-outfit">
-              Export comprehensive user data including profiles, messages, attachments, event history, and request history — organized by user (A-Z). Choose CSV, PDF, or ZIP (includes all files).
+              Export comprehensive user data including profiles, messages, attachments, event history, and request history - organized by user (A-Z). Choose CSV, PDF, or ZIP (includes all files).
             </p>
             
             <div className="flex flex-col gap-s">

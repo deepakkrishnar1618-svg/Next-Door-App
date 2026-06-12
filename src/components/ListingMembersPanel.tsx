@@ -166,7 +166,7 @@ export default function ListingMembersPanel({ members: membersProp, currentUserI
               {onlineMembers.length > 0 && (
                 <div className="mb-xl">
                   <div className="text-sm font-semibold text-success mb-s font-outfit">
-                    Online — {onlineMembers.length}
+                    Online - {onlineMembers.length}
                   </div>
                   <div className="space-y-s">
                     {onlineMembers.map(member => renderMember(member))}
@@ -178,7 +178,7 @@ export default function ListingMembersPanel({ members: membersProp, currentUserI
               {offlineMembers.length > 0 && (
                 <div className="mb-xl">
                   <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-s font-outfit">
-                    Offline — {offlineMembers.length}
+                    Offline - {offlineMembers.length}
                   </div>
                   <div className="space-y-s">
                     {offlineMembers.map(member => renderMember(member))}
@@ -190,7 +190,7 @@ export default function ListingMembersPanel({ members: membersProp, currentUserI
               {deactivatedMembers.length > 0 && (
                 <div className="mb-xl">
                   <div className="text-sm font-semibold text-error mb-s font-outfit">
-                    Deactivated — {deactivatedMembers.length}
+                    Deactivated - {deactivatedMembers.length}
                   </div>
                   <div className="space-y-s">
                     {deactivatedMembers.map(member => renderMember(member))}
@@ -202,7 +202,7 @@ export default function ListingMembersPanel({ members: membersProp, currentUserI
               {deletedMembers.length > 0 && (
                 <div>
                   <div className="text-sm font-semibold text-slate-400 dark:text-slate-500 mb-s font-outfit">
-                    Deleted — {deletedMembers.length}
+                    Deleted - {deletedMembers.length}
                   </div>
                   <div className="space-y-s">
                     {deletedMembers.map(member => renderMember(member))}

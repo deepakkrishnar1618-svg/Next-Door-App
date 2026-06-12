@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error, sanitizeHtml } from '@/src/lib/api-helpers';
 
-// PUT /api/event-messages/:msgId — edit (within 20 min)
+// PUT /api/event-messages/:msgId - edit (within 20 min)
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ msgId: string }> }) {
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);
@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   return json({ success: true });
 }
 
-// DELETE /api/event-messages/:msgId — delete (within 20 min)
+// DELETE /api/event-messages/:msgId - delete (within 20 min)
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ msgId: string }> }) {
   const userId = await authenticate();
   if (!userId) return error('Unauthorized', 401);

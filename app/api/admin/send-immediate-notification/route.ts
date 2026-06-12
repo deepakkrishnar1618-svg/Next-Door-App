@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextdoor.website';
 
-  // Fetch recipients — is_active is integer 1/0, not boolean
+  // Fetch recipients - is_active is integer 1/0, not boolean
   const { data: users } = await db
     .from('users')
     .select('id, email, name')

@@ -63,7 +63,7 @@ interface DigestStats {
 
 export function buildDailyDigestEmail(stats: DigestStats): { subject: string; html: string } {
   const appUrl = stats.appUrl ?? APP_URL_DEFAULT;
-  const subject = `🏠 Next Door — ${stats.dateLabel ?? 'Your daily digest'}`;
+  const subject = `🏠 Next Door - ${stats.dateLabel ?? 'Your daily digest'}`;
 
   const content = `
     <h2 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#0f172a;">Hi ${stats.recipientName},</h2>

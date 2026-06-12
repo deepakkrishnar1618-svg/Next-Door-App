@@ -13,7 +13,7 @@ async function handler() {
   if (!userId) return error('Unauthorized', 401);
   const db = getServiceClient();
 
-  // Only delete activity/mention/reply/event notifications — preserve announcement reminders
+  // Only delete activity/mention/reply/event notifications - preserve announcement reminders
   await db.from('notifications')
     .delete()
     .eq('user_id', userId)

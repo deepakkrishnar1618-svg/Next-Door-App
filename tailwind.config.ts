@@ -23,10 +23,18 @@ const config: Config = {
         'light-bg': '#FFFFFF',
         'light-surface': '#F3F5F4',
         'light-elevated': '#FFFFFF',
+        // Archio landing-page palette (light editorial)
+        'archio-cream': '#F6F4ED',
+        'archio-sand': '#ECEBE4',
+        'archio-forest': '#0E3A27',
+        'archio-forest-dark': '#0B2E1F',
+        'archio-ink': '#111111',
       },
       fontFamily: {
         'nura': ['Montserrat', 'sans-serif'],
         'outfit': ['Outfit', 'sans-serif'],
+        'crimson': ['"Crimson Pro"', 'ui-serif', 'Georgia', 'serif'],
+        'inter': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       spacing: {
         'xs': '4px',
@@ -61,9 +69,11 @@ const config: Config = {
         'shake': 'shake 300ms ease-in-out',
         'float': 'float 6s ease-in-out infinite',
         'fade-up': 'fadeUp 600ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'marquee': 'marquee 38s linear infinite',
       },
       keyframes: {
         float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+        marquee: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
         fadeUp: { '0%': { opacity: '0', transform: 'translateY(18px) scale(0.98)' }, '100%': { opacity: '1', transform: 'translateY(0) scale(1)' } },
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
         scaleIn: { '0%': { transform: 'scale(0.9)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } },

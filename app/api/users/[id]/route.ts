@@ -30,7 +30,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const { id: targetId } = await params;
   if (targetId === userId) return error('You cannot delete your own account', 400);
 
-  // Fetch name/email/room BEFORE anonymizing — needed for notifications and emails
+  // Fetch name/email/room BEFORE anonymizing - needed for notifications and emails
   const { data: targetUser } = await db.from('users').select('name, email, room_number').eq('id', targetId).single();
   const userName = (targetUser as Record<string, unknown> | null)?.name as string | null ?? 'User';
   const userEmail = (targetUser as Record<string, unknown> | null)?.email as string | null;

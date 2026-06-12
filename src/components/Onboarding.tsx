@@ -24,7 +24,7 @@ const screens: OnboardingScreen[] = [
   {
     icon: <MessageCircle className="w-16 h-16 text-primary-mint" />,
     title: "Welcome to Next Door",
-    description: "Your neighborhood community app. Chat with neighbors, organize events, and help each other out — all in one place.",
+    description: "Your neighborhood community app. Chat with neighbors, organize events, and help each other out - all in one place.",
     iconBgColor: "from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30",
   },
   {
@@ -36,7 +36,7 @@ const screens: OnboardingScreen[] = [
   {
     icon: <Calendar className="w-16 h-16 text-violet-500" />,
     title: "Events",
-    description: "Create or join community events — game nights, potlucks, building meetings, and more. Each event gets its own dedicated chat!",
+    description: "Create or join community events - game nights, potlucks, building meetings, and more. Each event gets its own dedicated chat!",
     iconBgColor: "from-violet-100 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30",
   },
   {

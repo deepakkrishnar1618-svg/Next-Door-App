@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { authenticate, getServiceClient, json, error } from '@/src/lib/api-helpers';
 
 export async function GET() {
-  // Public endpoint — no auth required to view the creator profile
+  // Public endpoint - no auth required to view the creator profile
   const db = getServiceClient();
 
   // Try ADMIN_EMAIL first, fall back to any admin user

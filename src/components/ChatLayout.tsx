@@ -175,7 +175,7 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
       router.replace('/blocked');
     };
 
-    // Polling — fires every 30 seconds
+    // Polling - fires every 30 seconds
     const checkActive = async () => {
       try {
         const res = await fetch('/api/profile', { credentials: 'include' });
@@ -189,12 +189,12 @@ export default function ChatLayout({ groupId, eventName, eventId, onBackToMain, 
             await handleBlocked();
           }
         }
-      } catch { /* network error — don't redirect */ }
+      } catch { /* network error - don't redirect */ }
     };
 
     const pollInterval = setInterval(checkActive, 30_000);
 
-    // Realtime — instant detection when admin changes is_active
+    // Realtime - instant detection when admin changes is_active
     const channel = supabase
       .channel(`user-status-${user.id}`)
       .on(

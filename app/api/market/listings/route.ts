@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     await db.from('market_listing_images').insert({ listing_id: listingId, image_url: images[i], display_order: i });
   }
 
-  // Post card in main chat — include listing_id so MessageBubble renders it as a card
+  // Post card in main chat - include listing_id so MessageBubble renders it as a card
   const cardText = `🤝 New request: "${sanitizeHtml(title)}"`;
   let messageId: number | null = null;
   try {

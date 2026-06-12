@@ -33,7 +33,7 @@ export async function bootstrapUser(
   let { data: dbUser } = await db.from('users').select('*').eq('id', userId).single();
 
   if (!dbUser) {
-    // First login — create the user record automatically.
+    // First login - create the user record automatically.
     const isAdmin = userEmail ? userEmail === ADMIN_EMAIL : false;
 
     if (userEmail) {
@@ -86,12 +86,12 @@ export async function bootstrapUser(
     throw new Error('Failed to create user record');
   }
 
-  // Blocked (but not deleted) — reject
+  // Blocked (but not deleted) - reject
   if (dbUser.is_active === 0 && !dbUser.is_deleted) {
     return { status: 'blocked' };
   }
 
-  // Deleted user signs back in with same Google account — give them a fresh start
+  // Deleted user signs back in with same Google account - give them a fresh start
   if (dbUser.is_deleted) {
     await db.from('users').update({
       is_deleted: false,

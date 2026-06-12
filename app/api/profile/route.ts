@@ -69,7 +69,7 @@ export async function PUT(request: NextRequest) {
       metadata: JSON.stringify({ name: updates.name, room_number: updates.room_number, avatar_url: avatar_url || null }),
     });
 
-    // Send welcome email (fire-and-forget — don't block the response)
+    // Send welcome email (fire-and-forget - don't block the response)
     const { data: userRecord } = await db.from('users').select('email').eq('id', userId).single();
     if (userRecord?.email?.includes('@')) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextdoor.website';

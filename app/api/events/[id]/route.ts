@@ -59,7 +59,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
   }
   if (fileKeys.length > 0) {
-    // file_key format: "bucket/path" — group by bucket
+    // file_key format: "bucket/path" - group by bucket
     const byBucket: Record<string, string[]> = {};
     for (const fk of fileKeys) {
       const parts = fk.split('/');

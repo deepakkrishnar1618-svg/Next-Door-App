@@ -32,11 +32,11 @@ export async function POST(request: NextRequest) {
   `;
 
   const html = buildBaseTemplate(content, appUrl);
-  const ok = await sendEmail(adminEmail, '[TEST] 🏠 Next Door — Test Email', html);
+  const ok = await sendEmail(adminEmail, '[TEST] 🏠 Next Door - Test Email', html);
 
   if (ok) {
     return json({ success: true, message: `Test email sent to ${adminEmail}` });
   } else {
-    return json({ success: false, error: 'Failed to send email — check server logs' }, 500);
+    return json({ success: false, error: 'Failed to send email - check server logs' }, 500);
   }
 }

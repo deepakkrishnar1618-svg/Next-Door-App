@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   const validation = validateFileUpload(file, type === 'profile' ? 'image' : 'attachment');
   if (!validation.valid) return error(validation.error || 'Invalid file', 400);
 
-  // Sanitize filename — strip to safe chars, cap length
+  // Sanitize filename - strip to safe chars, cap length
   const rawName = file.name.slice(0, 200);
   const sanitizedFilename = rawName.replace(/[^a-zA-Z0-9._-]/g, '_');
   const timestamp = Date.now();

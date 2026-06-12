@@ -9,8 +9,8 @@ import { getServiceClient } from '@/src/lib/api-helpers';
  * (default 24h): their content rows, their users row, and the underlying
  * anonymous auth user (which frees Supabase MAU).
  *
- * Trigger it the same way as the other crons — POST with the x-webhook-secret
- * header — from your external scheduler (e.g. a daily/hourly hit).
+ * Trigger it the same way as the other crons - POST with the x-webhook-secret
+ * header - from your external scheduler (e.g. a daily/hourly hit).
  *
  * Note: user_id columns have no DB-level FK cascade, so references are cleared
  * explicitly below. Each delete is best-effort: a missing table/column is logged

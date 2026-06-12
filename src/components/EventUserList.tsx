@@ -156,7 +156,7 @@ export default function EventUserList({ users, currentUserId, onClose }: EventUs
         {onlineUsers.length > 0 && (
           <div className="mb-xl">
             <div className="text-sm font-semibold text-success mb-s font-outfit">
-              Online — {onlineUsers.length}
+              Online - {onlineUsers.length}
             </div>
             <div className="space-y-s">
               {onlineUsers.map(user => renderUser(user))}
@@ -167,7 +167,7 @@ export default function EventUserList({ users, currentUserId, onClose }: EventUs
         {offlineUsers.length > 0 && (
           <div className="mb-xl">
             <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-s font-outfit">
-              Offline — {offlineUsers.length}
+              Offline - {offlineUsers.length}
             </div>
             <div className="space-y-s">
               {offlineUsers.map(user => renderUser(user))}
@@ -178,7 +178,7 @@ export default function EventUserList({ users, currentUserId, onClose }: EventUs
         {deactivatedUsers.length > 0 && (
           <div className="mb-xl">
             <div className="text-sm font-semibold text-error mb-s font-outfit">
-              Deactivated — {deactivatedUsers.length}
+              Deactivated - {deactivatedUsers.length}
             </div>
             <div className="space-y-s">
               {deactivatedUsers.map(user => renderUser(user))}
@@ -189,7 +189,7 @@ export default function EventUserList({ users, currentUserId, onClose }: EventUs
         {deletedUsers.length > 0 && (
           <div>
             <div className="text-sm font-semibold text-slate-400 dark:text-slate-500 mb-s font-outfit">
-              Deleted — {deletedUsers.length}
+              Deleted - {deletedUsers.length}
             </div>
             <div className="space-y-s">
               {deletedUsers.map(user => renderUser(user))}

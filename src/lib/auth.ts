@@ -17,7 +17,7 @@ export async function getCurrentUser() {
 }
 
 /**
- * Require authentication — redirects to / if not logged in.
+ * Require authentication - redirects to / if not logged in.
  * Use this in Server Components / Server Actions.
  */
 export async function requireAuth() {
