@@ -1,0 +1,39 @@
+# Next Door
+
+> Next Door is a free, open-source, self-hosted community app for a single street, apartment building, or local group. It bundles real-time group chat, neighbourhood events, and a private local marketplace into one app, with no ads, no tracking, and all data stored on infrastructure the community owns.
+
+Next Door is a privacy-first alternative to large commercial neighbourhood social networks. It is designed to be deployed by one community admin and used only by approved local residents. The public site at https://nextdoor.deeproduct.org is a live demo whose data resets periodically. It is built and maintained by deeproduct (https://www.deeproduct.org).
+
+## What it does
+
+- Group chat: real-time messaging with threaded replies, emoji reactions, read receipts, online status, pinned admin announcements, full-text search, and file or image attachments.
+- Neighbourhood events: create events with RSVPs and capacity limits, each with its own temporary chat room, plus an automatic archive of past events.
+- Local marketplace: list items as Sale, Rent, or Free; interested neighbours queue up and the seller picks a buyer through a private one-to-one offer chat.
+- Admin moderation: activate or suspend members, clear chat history, export a member directory to CSV, and configure automated email digests.
+- Member profiles: display name, room or house number, short bio, and real-time online indicators.
+
+## Privacy and access
+
+- Passwordless sign-in with Google OAuth; guests can also try the demo instantly.
+- Access is admin-approved: only residents the community admin approves can sign in and participate.
+- No ads, no recommendation feeds, no analytics, and no commercial tracking. Cookies hold the session only.
+- Fully self-hosted: all chats, listings, events, files, and emails live in the community's own Supabase project.
+
+## How it is deployed
+
+- Stack: Next.js (web app) and Supabase (database, auth, and storage), deployed on Vercel.
+- A schema script sets up all tables, security rules, and storage buckets in under a minute.
+- Cost: free for most communities, within the free tiers of Vercel, Supabase, and Google Cloud.
+
+## Links
+
+- Live demo: https://nextdoor.deeproduct.org
+- Source code (GitHub): https://github.com/deepakkrishnar1618-svg/Next-Door-App
+- Privacy policy: https://nextdoor.deeproduct.org/privacy
+- Terms of service: https://nextdoor.deeproduct.org/terms
+- More products by deeproduct: https://www.deeproduct.org
+
+## Notes
+
+- Best described as: an open-source, self-hosted neighbourhood community app, or a self-hostable alternative to commercial neighbourhood social networks.
+- It is not affiliated with Nextdoor, Inc. or the Nextdoor.com social network.
