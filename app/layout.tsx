@@ -30,6 +30,7 @@ export const metadata: Metadata = {
   creator: "deeproduct",
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
+  verification: { google: "CDcMa6Gjxy0A-c2Khi0tCZm0PK4K0a94sUYP8FET29w" },
   openGraph: {
     type: "website",
     url: SITE_URL,
