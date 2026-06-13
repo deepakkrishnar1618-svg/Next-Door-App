@@ -56,6 +56,42 @@ export const metadata: Metadata = {
   },
 };
 
+const GITHUB_URL = "https://github.com/deepakkrishnar1618-svg/Next-Door-App";
+
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: "Next Door",
+      description: SITE_DESCRIPTION,
+      publisher: { "@id": `${SITE_URL}/#organization` },
+    },
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "deeproduct",
+      url: "https://www.deeproduct.org/",
+      logo: `${SITE_URL}/apple-touch-icon.png`,
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": `${SITE_URL}/#app`,
+      name: "Next Door",
+      description: SITE_DESCRIPTION,
+      applicationCategory: "SocialNetworkingApplication",
+      operatingSystem: "Web",
+      url: SITE_URL,
+      isAccessibleForFree: true,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      sameAs: [GITHUB_URL],
+      publisher: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -64,6 +100,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+        />
         <AuthProvider>
           <ThemeProvider>
             <ToastProvider>
