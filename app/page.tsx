@@ -260,9 +260,12 @@ export default function HomePage() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen bg-archio-cream flex items-center justify-center">
-        <div className="text-archio-forest text-lg font-inter animate-pulse-slow">Loading…</div>
-      </div>
+      <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSONLD) }} />
+        <div className="min-h-screen bg-archio-cream flex items-center justify-center">
+          <div className="text-archio-forest text-lg font-inter animate-pulse-slow">Loading…</div>
+        </div>
+      </>
     );
   }
 
